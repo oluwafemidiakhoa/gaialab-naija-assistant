@@ -48,9 +48,12 @@ def get_configured_model_id() -> str:
 def load_model(model_id: str):
     """Load one configured local or Hugging Face model per app process."""
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    # Preserve the latest user turn and generation prompt when context is truncated.
+    tokenizer.truncation_side = "left"
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         device_map="auto" if torch.cuda.is_available() else None,
+        # Transformers 5 uses `dtype`; `torch_dtype` is deprecated compatibility API.
         dtype="auto",
     )
     if tokenizer.pad_token_id is None:
