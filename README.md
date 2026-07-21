@@ -53,10 +53,10 @@ python -m pip install -r requirements.txt
 python -m pytest
 ```
 
-Validate and prepare the bundled demonstrations:
+Validate and prepare GaiaLab Naija Dataset v0.1:
 
 ```bash
-python -m src.validate_dataset data/sample_training_data.jsonl --output-dir prepared_data
+python -m src.validate_dataset data/gaialab_naija_v0.1.jsonl --output-dir prepared_data
 python -m src.prepare_dataset --output-dir prepared_data/hf
 ```
 
@@ -81,12 +81,14 @@ Each UTF-8 JSONL line is one object with exactly these required string fields:
 | `input` | Optional context; an empty string is allowed |
 | `output` | Desired assistant response |
 | `language` | Response language or variety |
-| `category` | Such as `customer_service`, `terminology`, or `translation` |
+| `category` | One of the task categories documented in `data/README.md` |
 | `source` | Traceable origin or documented collection method |
 | `license` | Licence or permission governing the record |
 
-The repository contains exactly 20 CC0 original synthetic demonstrations. They show
-the schema and do not constitute enough data for a useful production fine-tune. The
+The repository contains exactly 100 original CC0 draft examples in GaiaLab Naija
+Dataset v0.1. They cover customer service, terminology, two translation directions,
+and business writing. Every row is explicitly pending Nigerian human review; this
+small draft does not constitute enough reviewed data for a production fine-tune. The
 validator rejects missing metadata and empty instructions/outputs, removes exact
 duplicates, reports language/category totals, warns about very short outputs, and
 creates reproducible train/validation splits. See [data/README.md](data/README.md).
@@ -96,7 +98,7 @@ creates reproducible train/validation splits. See [data/README.md](data/README.m
 1. Open `notebooks/gaialab_naija_qlora_colab.ipynb` in Colab.
 2. Select **Runtime → Change runtime type → GPU**.
 3. Run the setup and validation cells, then inspect the split and model configuration.
-4. Only after replacing/expanding the demonstrations with consented, licensed data,
+4. Only after reviewing and expanding the draft with consented, licensed data,
    explicitly run the training cell.
 5. Download the LoRA adapter before the runtime expires.
 
@@ -177,7 +179,8 @@ commit an access token.
 
 ## Limitations
 
-- No training has been performed and the bundled 20 examples are demonstrations only.
+- No training has been performed, and the 100 draft examples have not yet completed
+  Nigerian human review.
 - The base model may not reliably represent Nigerian business contexts or language.
 - Nigerian Pidgin and Nigerian English vary by speaker, region, audience, and setting.
 - Translation may lose tone or meaning; customer-facing messages need human review.
