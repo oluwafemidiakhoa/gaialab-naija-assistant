@@ -10,6 +10,11 @@ Phase 2 introduces **GaiaBench Africa**, an open, human-scored evaluation benchm
 for African business AI models. GaiaBench runs local Hugging Face models only; it
 does not train a model or use a paid API.
 
+Phase 3 introduces the **GaiaLab Adapter v0.1 training and release pipeline**. The
+pipeline supports reproducible LoRA training, checkpoint resume, human-scored model
+comparison, and controlled Hugging Face publishing. No adapter weights or training
+results are committed or claimed by this repository.
+
 > **Experimental disclaimer:** generated responses may be inaccurate. Review
 > important business, legal, tax, and financial information before acting on it.
 
@@ -32,9 +37,10 @@ validate + deduplicate + split  (src/validate_dataset.py)
 chat-format Hugging Face Dataset (src/prepare_dataset.py)
         |
         v
-optional QLoRA fine-tuning       (src/train_qlora.py)
+explicit LoRA adapter training   (train_adapter.py)
         |
-        +--> GaiaBench human evaluation (evaluation/run_benchmark.py)
+        +--> base/adapter comparison (compare_models.py + GaiaBench)
+        +--> reviewed Hub release   (publish_to_huggingface.py)
         +--> local Gradio app        (app/app.py)
 ```
 
@@ -57,11 +63,11 @@ python -m pip install -r requirements.txt
 python -m pytest
 ```
 
-Validate and prepare GaiaLab Naija Dataset v0.1:
+Validate GaiaLab Naija Dataset v0.1 and the default adapter configuration:
 
 ```bash
 python -m src.validate_dataset data/gaialab_naija_v0.1.jsonl --output-dir prepared_data
-python -m src.prepare_dataset --output-dir prepared_data/hf
+python train_adapter.py --validate-only
 ```
 
 Run the app with any compatible local path or Hugging Face causal instruction model:
@@ -97,32 +103,67 @@ validator rejects missing metadata and empty instructions/outputs, removes exact
 duplicates, reports language/category totals, warns about very short outputs, and
 creates reproducible train/validation splits. See [data/README.md](data/README.md).
 
-## Fine-tuning in Google Colab
+## GaiaLab Adapter v0.1 training
+
+The versioned defaults are in `training/default_config.yaml`. They use
+`Qwen/Qwen2.5-0.5B-Instruct` and the unchanged GaiaLab Naija Dataset v0.1. The
+training entry point validates and splits the dataset deterministically, masks prompt
+tokens from the loss, evaluates and saves a checkpoint after every epoch, uses early
+stopping, reloads the checkpoint with the lowest validation loss, and saves the final
+LoRA artefact under `best_adapter/`.
+
+Training is always an explicit GPU operation:
+
+```bash
+python train_adapter.py \
+  --config training/default_config.yaml \
+  --output-dir outputs/gaialab-adapter-v0.1
+```
+
+Resume the latest complete checkpoint automatically:
+
+```bash
+python train_adapter.py \
+  --config training/default_config.yaml \
+  --output-dir outputs/gaialab-adapter-v0.1 \
+  --resume-from-checkpoint
+```
+
+Pass a checkpoint path after `--resume-from-checkpoint` to select one explicitly.
+Training writes `training.log`, `metrics.csv`, TensorBoard events, Trainer state,
+automatic checkpoints, a resolved configuration, and a factual run summary under the
+ignored output directory. View TensorBoard logs with:
+
+```bash
+tensorboard --logdir outputs/gaialab-adapter-v0.1/tensorboard
+```
+
+No performance claim should be made from training loss alone.
+
+### Google Colab
 
 1. Open `notebooks/gaialab_naija_qlora_colab.ipynb` in Colab.
 2. Select **Runtime → Change runtime type → GPU**.
-3. Run the setup and validation cells, then inspect the split and model configuration.
-4. Only after reviewing and expanding the draft with consented, licensed data,
-   explicitly run the training cell.
+3. Run the setup and validation cells, then inspect `training/default_config.yaml`.
+4. Only after confirming the dataset provenance and configuration, explicitly run the
+   `train_adapter.py` training cell.
 5. Download the LoRA adapter before the runtime expires.
 
-The notebook does not train on open. Free GPU availability and limits vary. If 4-bit
-operations are unsupported by the assigned runtime, stop rather than silently using
-an unexpectedly expensive configuration.
+The notebook does not train on open. Free GPU availability, memory, and session limits
+vary. Preserve checkpoints outside the temporary runtime if you need to resume later.
 
-## Fine-tuning on Kaggle
+### Kaggle
 
 1. Create a Kaggle notebook, enable a GPU under **Settings → Accelerator**, and add
    this repository by cloning it or uploading a reviewed snapshot.
 2. Set the working directory to the repository and install `requirements.txt`.
-3. Run the validation and preparation commands above.
+3. Run `python train_adapter.py --validate-only` and inspect the configuration.
 4. After confirming data provenance, start an explicit run:
 
 ```bash
-python -m src.train_qlora \
-  --model-id Qwen/Qwen2.5-0.5B-Instruct \
-  --dataset-dir prepared_data/hf \
-  --output-dir /kaggle/working/gaialab-naija-adapter
+python train_adapter.py \
+  --config training/default_config.yaml \
+  --output-dir /kaggle/working/gaialab-adapter-v0.1
 ```
 
 Save the adapter as a Kaggle output. Do not put secrets directly in notebook cells.
@@ -162,31 +203,42 @@ for sensitive content before sharing it.
 The benchmark and rubric are original drafts pending independent Nigerian human
 review. They are not culturally validated, and no benchmark results are claimed.
 
-## Publishing to Hugging Face
+## Compare the base model and adapter
 
-1. Create a Hugging Face model repository and authenticate with `hf auth login` or a
-   secret `HF_TOKEN` in the notebook environment.
-2. Write a model card stating the base model, adapter method, exact dataset versions,
-   licences, intended uses, limitations, evaluation procedure, and that the system is
-   experimental.
-3. Review the adapter output, then publish it explicitly:
+After a real adapter run completes, generate side-by-side GaiaBench responses:
 
-```python
-from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-BASE_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-base = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID)
-adapter = PeftModel.from_pretrained(base, "outputs/gaialab-naija")
-adapter.push_to_hub("YOUR_ACCOUNT/gaialab-naija-adapter", private=True)
-AutoTokenizer.from_pretrained(BASE_MODEL_ID).push_to_hub(
-    "YOUR_ACCOUNT/gaialab-naija-adapter", private=True
-)
+```bash
+python compare_models.py \
+  --adapter-path outputs/gaialab-adapter-v0.1/best_adapter \
+  --output-dir outputs/comparison
 ```
 
-Start private for review, include the base model rather than duplicating its weights,
-and only make the repository public when all data/model licences permit it. Never
-commit an access token.
+This creates `comparison.json`, `comparison.csv`, and `comparison.md` with benchmark
+metadata, base and adapter responses, average-score placeholders, and blank human
+review fields. It never assigns scores or declares a winner. Human reviewers must use
+the GaiaBench guide and scorecard before any evaluation report is published.
+
+## Publishing to Hugging Face
+
+1. Copy `MODEL_CARD_TEMPLATE.md`, replace every placeholder, document known failures,
+   and verify the base-model licence.
+2. Complete human review of the comparison report.
+3. Authenticate with `hf auth login` or store `HF_TOKEN` in the notebook or platform
+   secret store. Never pass a token as a command-line argument or commit it.
+4. Publish privately first:
+
+```bash
+python publish_to_huggingface.py \
+  --repo-id YOUR_ACCOUNT/gaialab-adapter-v0.1 \
+  --adapter-dir outputs/gaialab-adapter-v0.1/best_adapter \
+  --model-card /path/to/completed-model-card.md \
+  --evaluation-report outputs/comparison/comparison.md
+```
+
+The publisher uploads only the LoRA adapter package and tokenizer from `best_adapter/`,
+the completed model card, and the selected evaluation report. Repositories are private
+by default; use `--public` only after all artefacts, licences, and human reviews are
+ready. The script never prints or accepts an API token argument.
 
 ## Ethical data collection
 
