@@ -25,6 +25,10 @@ These rules apply to all future Codex work in this repository.
   evaluation outputs containing sensitive prompts.
 - Training must require an explicit command; imports and notebooks must not start a
   training job automatically.
+- Keep generated checkpoints, adapters, logs, metrics, comparisons, and TensorBoard
+  events under ignored output directories. Never commit model artefacts.
+- Do not publish an adapter with unresolved model-card placeholders or an unreviewed
+  evaluation report. Keep Hugging Face credentials out of files and CLI arguments.
 - Keep evaluation prompts separate from training data. Do not add expected answers
   to GaiaBench or assign model scores automatically; scores must come from humans.
 - Describe GaiaBench language and review materials as drafts pending independent
