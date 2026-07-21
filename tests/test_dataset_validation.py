@@ -4,6 +4,7 @@ import pytest
 
 from src.validate_dataset import (
     DatasetValidationError,
+    read_jsonl,
     split_records,
     validate_and_split,
     validate_records,
@@ -38,6 +39,37 @@ def test_rejects_empty_critical_fields(field):
         validate_records([record(**{field: "   "})])
 
 
+@pytest.mark.parametrize("field", ["language", "category"])
+def test_rejects_empty_classification_fields(field):
+    with pytest.raises(DatasetValidationError, match=f"'{field}' must not be empty"):
+        validate_records([record(**{field: "   "})])
+
+
+def test_allows_empty_input():
+    records, _ = validate_records([record(input="")])
+    assert records[0]["input"] == ""
+
+
+def test_rejects_unexpected_fields():
+    with pytest.raises(DatasetValidationError, match="unexpected field"):
+        validate_records([record(customer_phone="not allowed")])
+
+
+@pytest.mark.parametrize("field", ["source", "license"])
+def test_rejects_placeholder_provenance(field):
+    with pytest.raises(DatasetValidationError, match="placeholder metadata"):
+        validate_records([record(**{field: "unknown"})])
+
+
+def test_rejects_duplicate_json_fields(tmp_path):
+    path = tmp_path / "duplicate-key.jsonl"
+    path.write_text(
+        '{"instruction":"one","instruction":"two"}\n', encoding="utf-8"
+    )
+    with pytest.raises(DatasetValidationError, match="duplicate JSON field"):
+        read_jsonl(path)
+
+
 def test_removes_exact_duplicates_and_reports_counts():
     first = record()
     second = record(language="Nigerian Pidgin", category="translation")
@@ -46,6 +78,14 @@ def test_removes_exact_duplicates_and_reports_counts():
     assert report.duplicates_removed == 1
     assert report.by_language == {"Nigerian English": 1, "Nigerian Pidgin": 1}
     assert report.by_category == {"customer_service": 1, "translation": 1}
+
+
+def test_removes_duplicates_after_whitespace_normalisation():
+    first = record()
+    padded = record(output=f"  {first['output']}  ")
+    records, report = validate_records([first, padded])
+    assert len(records) == 1
+    assert report.duplicates_removed == 1
 
 
 def test_warns_about_short_output():

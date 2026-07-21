@@ -21,6 +21,16 @@ REQUIRED_FIELDS = (
     "license",
 )
 SHORT_OUTPUT_WORDS = 3
+EMPTY_ALLOWED_FIELDS = {"input"}
+PLACEHOLDER_METADATA = {
+    "n/a",
+    "na",
+    "none",
+    "unknown",
+    "unspecified",
+    "todo",
+    "tbd",
+}
 
 
 class DatasetValidationError(ValueError):
@@ -55,7 +65,12 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
             if not line.strip():
                 continue
             try:
-                value = json.loads(line)
+                value = json.loads(
+                    line,
+                    object_pairs_hook=lambda pairs: _object_without_duplicate_keys(
+                        pairs, line_number
+                    ),
+                )
             except json.JSONDecodeError as exc:
                 raise DatasetValidationError(
                     f"Line {line_number}: invalid JSON ({exc.msg})."
@@ -66,6 +81,20 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
                 )
             records.append(value)
     return records
+
+
+def _object_without_duplicate_keys(
+    pairs: list[tuple[str, Any]], line_number: int
+) -> dict[str, Any]:
+    """Reject ambiguous JSON objects containing a repeated field name."""
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise DatasetValidationError(
+                f"Line {line_number}: duplicate JSON field '{key}'."
+            )
+        value[key] = item
+    return value
 
 
 def validate_records(
@@ -84,31 +113,46 @@ def validate_records(
                 f"Record {line_number}: missing required field(s): {', '.join(missing)}."
             )
 
+        unexpected = sorted(set(record) - set(REQUIRED_FIELDS))
+        if unexpected:
+            raise DatasetValidationError(
+                f"Record {line_number}: unexpected field(s): {', '.join(unexpected)}."
+            )
+
         for field_name in REQUIRED_FIELDS:
             if not isinstance(record[field_name], str):
                 raise DatasetValidationError(
                     f"Record {line_number}: '{field_name}' must be a string."
                 )
 
-        for field_name in ("instruction", "output", "source", "license"):
+        for field_name in REQUIRED_FIELDS:
+            if field_name in EMPTY_ALLOWED_FIELDS:
+                continue
             if not record[field_name].strip():
                 raise DatasetValidationError(
                     f"Record {line_number}: '{field_name}' must not be empty."
                 )
 
-        canonical = json.dumps(record, ensure_ascii=False, sort_keys=True)
+        for field_name in ("source", "license"):
+            if record[field_name].strip().casefold() in PLACEHOLDER_METADATA:
+                raise DatasetValidationError(
+                    f"Record {line_number}: '{field_name}' contains placeholder "
+                    "metadata; provide traceable provenance and permission."
+                )
+
+        clean = {field: record[field].strip() for field in REQUIRED_FIELDS}
+        canonical = json.dumps(clean, ensure_ascii=False, sort_keys=True)
         if canonical in seen:
             report.duplicates_removed += 1
             continue
         seen.add(canonical)
 
-        if len(record["output"].split()) < SHORT_OUTPUT_WORDS:
+        if len(clean["output"].split()) < SHORT_OUTPUT_WORDS:
             report.warnings.append(
                 f"Record {line_number}: output is unusually short "
                 f"(< {SHORT_OUTPUT_WORDS} words)."
             )
 
-        clean = {field: record[field].strip() for field in REQUIRED_FIELDS}
         validated.append(clean)
         report.by_language[clean["language"]] += 1
         report.by_category[clean["category"]] += 1
