@@ -6,6 +6,10 @@ business terms, and translate simple messages between Nigerian English and Niger
 Pidgin. Version 0.1 is a reproducible scaffold: **no model has been trained and no
 performance results are claimed**.
 
+Phase 2 introduces **GaiaBench Africa**, an open, human-scored evaluation benchmark
+for African business AI models. GaiaBench runs local Hugging Face models only; it
+does not train a model or use a paid API.
+
 > **Experimental disclaimer:** generated responses may be inaccurate. Review
 > important business, legal, tax, and financial information before acting on it.
 
@@ -30,7 +34,7 @@ chat-format Hugging Face Dataset (src/prepare_dataset.py)
         v
 optional QLoRA fine-tuning       (src/train_qlora.py)
         |
-        +--> human-review benchmark (evaluation/)
+        +--> GaiaBench human evaluation (evaluation/run_benchmark.py)
         +--> local Gradio app        (app/app.py)
 ```
 
@@ -125,17 +129,38 @@ Save the adapter as a Kaggle output. Do not put secrets directly in notebook cel
 
 ## Evaluation
 
-The benchmark contains original prompts and qualitative review checks. It generates
-an **unscored** review file; it does not invent an automated quality metric:
+GaiaBench Africa v0.1 contains 30 original evaluation prompts, split evenly across
+customer service, business terminology, English-to-Nigerian-Pidgin translation,
+Nigerian-Pidgin-to-English translation, and business writing. It includes no
+expected answers and no prompts copied from the bundled training demonstrations.
+
+Each benchmark record contains an ID, instruction, input, expected characteristics,
+target language, category, difficulty, review status, source, and licence. The
+expected characteristics guide human review without asserting that one reference
+answer is the only correct response.
+
+Run any compatible local path or Hugging Face causal instruction model:
 
 ```bash
-GAIALAB_MODEL_ID=/path/to/model-or-merged-adapter \
-python -m evaluation.evaluate_model --output evaluation/results.jsonl
+python -m evaluation.run_benchmark \
+  --model-id /path/to/local-model-or-hugging-face-id \
+  --output evaluation/results.jsonl
 ```
 
-Reviewers should fill the `human_review` fields, record model and adapter revisions,
-and document failures as well as successes. Generated result files are ignored by
-default when placed under `outputs/`; review sensitive content before sharing.
+Alternatively, set `GAIABENCH_MODEL_ID` and omit `--model-id`. The runner validates
+the benchmark, generates one response per prompt, and writes blank human-review
+fields. It never assigns or aggregates scores. Existing output files are protected
+unless `--overwrite` is supplied.
+
+Reviewers must use [the reviewer guide](evaluation/reviewer_guide.md) and enter 1–5
+scores with [the scorecard](evaluation/scorecard.md) for instruction following,
+meaning preservation, naturalness, professional tone, safety, hallucination, and
+business usefulness. Record model revisions and document failures as well as
+successes. `evaluation/results*.jsonl` is ignored by default; inspect generated text
+for sensitive content before sharing it.
+
+The benchmark and rubric are original drafts pending independent Nigerian human
+review. They are not culturally validated, and no benchmark results are claimed.
 
 ## Publishing to Hugging Face
 
@@ -181,6 +206,9 @@ commit an access token.
 
 - No training has been performed, and the 100 draft examples have not yet completed
   Nigerian human review.
+- GaiaBench v0.1 is small, focuses on Nigerian English and Nigerian Pidgin, and is not
+  representative of all African business settings or languages.
+- Benchmark prompts and review criteria are pending independent Nigerian human review.
 - The base model may not reliably represent Nigerian business contexts or language.
 - Nigerian Pidgin and Nigerian English vary by speaker, region, audience, and setting.
 - Translation may lose tone or meaning; customer-facing messages need human review.
@@ -192,6 +220,8 @@ commit an access token.
 - Co-design a consent and data-governance process with Nigerian business owners.
 - Build a larger, versioned, openly licensed dataset with regional review.
 - Establish transparent human evaluation and publish failure analyses.
+- Expand GaiaBench with consented prompts and reviewers from more African languages,
+  regions, and business sectors.
 - Train and document the first LoRA adapter only after data review.
 - Add model-card automation, accessibility testing, and low-resource deployment paths.
 - Explore opt-in terminology retrieval with traceable Nigerian public sources.

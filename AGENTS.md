@@ -25,6 +25,10 @@ These rules apply to all future Codex work in this repository.
   evaluation outputs containing sensitive prompts.
 - Training must require an explicit command; imports and notebooks must not start a
   training job automatically.
+- Keep evaluation prompts separate from training data. Do not add expected answers
+  to GaiaBench or assign model scores automatically; scores must come from humans.
+- Describe GaiaBench language and review materials as drafts pending independent
+  human review unless documented review evidence supports a stronger statement.
 - Prefer small, reviewable changes and explain model/data licensing implications in
   pull requests.
 
