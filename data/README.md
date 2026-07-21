@@ -9,6 +9,7 @@ Each record has `instruction`, `input`, `output`, `language`, `category`, `sourc
 and `license` fields. The examples cover Nigerian English, Nigerian Pidgin, customer
 service, small-business terminology, and translation. Every example is marked as an
 original synthetic demonstration and dedicated under CC0-1.0.
+The repository-level [data licence](../DATA_LICENSE.md) records that dedication.
 
 Do not add scraped private conversations, personal information, or material without
 documented permission and a compatible licence. Run the validator before accepting

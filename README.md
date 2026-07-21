@@ -36,8 +36,9 @@ optional QLoRA fine-tuning       (src/train_qlora.py)
 
 The initial training default is `Qwen/Qwen2.5-0.5B-Instruct`, a small open-weight
 instruction model suitable for adapter fine-tuning on a modest CUDA GPU. The model
-ID is configurable. Before training or redistribution, independently review the
-selected model card, licence, limitations, and acceptable-use terms.
+ID is configurable. The default model is distributed under Apache-2.0; its model
+card and licence remain authoritative. Before training or redistribution,
+independently review the selected model card, licence, limitations, and terms.
 
 ## Local installation
 
@@ -52,6 +53,22 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pytest
 ```
+
+On Windows PowerShell, activate the environment and configure the app with:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+$env:GAIALAB_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+python app/app.py
+```
+
+The dependency versions are intentionally pinned to a reviewed compatibility set.
+PyTorch uses a bounded range so Colab, Kaggle, Windows, and CUDA-specific package
+indexes can retain an appropriate platform build. QLoRA still requires a supported
+CUDA GPU; dataset validation, preparation, tests, and CPU inference do not.
 
 Validate and prepare the bundled demonstrations:
 
@@ -85,20 +102,24 @@ Each UTF-8 JSONL line is one object with exactly these required string fields:
 | `source` | Traceable origin or documented collection method |
 | `license` | Licence or permission governing the record |
 
-The repository contains exactly 20 CC0 original synthetic demonstrations. They show
+The repository contains exactly 20 CC0 original synthetic demonstrations. The
+dedication is recorded in [DATA_LICENSE.md](DATA_LICENSE.md). They show
 the schema and do not constitute enough data for a useful production fine-tune. The
-validator rejects missing metadata and empty instructions/outputs, removes exact
-duplicates, reports language/category totals, warns about very short outputs, and
-creates reproducible train/validation splits. See [data/README.md](data/README.md).
+validator rejects missing, empty, placeholder, duplicate-key, and unexpected fields;
+removes exact duplicates; reports language/category totals; warns about very short
+outputs; and creates reproducible train/validation splits. Dataset preparation also
+rejects exact leakage between the two splits. See [data/README.md](data/README.md).
 
 ## Fine-tuning in Google Colab
 
 1. Open `notebooks/gaialab_naija_qlora_colab.ipynb` in Colab.
 2. Select **Runtime → Change runtime type → GPU**.
-3. Run the setup and validation cells, then inspect the split and model configuration.
-4. Only after replacing/expanding the demonstrations with consented, licensed data,
+3. Run the setup cell. It clones the public repository when needed and installs the
+   pinned dependencies from the repository root.
+4. Run validation and inspect the split and model configuration.
+5. Only after replacing/expanding the demonstrations with consented, licensed data,
    explicitly run the training cell.
-5. Download the LoRA adapter before the runtime expires.
+6. Download the LoRA adapter before the runtime expires.
 
 The notebook does not train on open. Free GPU availability and limits vary. If 4-bit
 operations are unsupported by the assigned runtime, stop rather than silently using
@@ -106,8 +127,8 @@ an unexpectedly expensive configuration.
 
 ## Fine-tuning on Kaggle
 
-1. Create a Kaggle notebook, enable a GPU under **Settings → Accelerator**, and add
-   this repository by cloning it or uploading a reviewed snapshot.
+1. Create a Kaggle notebook, enable both a GPU and **Internet** in notebook settings,
+   and add this repository by cloning it or uploading a reviewed snapshot.
 2. Set the working directory to the repository and install `requirements.txt`.
 3. Run the validation and preparation commands above.
 4. After confirming data provenance, start an explicit run:
@@ -131,9 +152,10 @@ GAIALAB_MODEL_ID=/path/to/model-or-merged-adapter \
 python -m evaluation.evaluate_model --output evaluation/results.jsonl
 ```
 
-Reviewers should fill the `human_review` fields, record model and adapter revisions,
-and document failures as well as successes. Generated result files are ignored by
-default when placed under `outputs/`; review sensitive content before sharing.
+Evaluation now fails before writing output when the model is missing, a benchmark row
+is invalid, or generation fails. Reviewers should fill the `human_review` fields and
+document failures as well as successes. `evaluation/results*.jsonl` is ignored by
+Git; review sensitive content before sharing.
 
 ## Publishing to Hugging Face
 

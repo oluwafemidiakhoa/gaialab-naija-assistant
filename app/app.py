@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from functools import lru_cache
 
-import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -13,6 +13,7 @@ DISCLAIMER = (
     "Experimental first version: responses may be inaccurate. Review important "
     "business, legal, tax, and financial information before acting on it."
 )
+LOGGER = logging.getLogger(__name__)
 SYSTEM_PROMPTS = {
     "Nigerian English": (
         "You are GaiaLab Naija Assistant. Reply in clear, professional Nigerian "
@@ -25,29 +26,59 @@ SYSTEM_PROMPTS = {
 }
 
 
+class ModelConfigurationError(RuntimeError):
+    """Raised when local model configuration is absent or incompatible."""
+
+
+class ModelGenerationError(RuntimeError):
+    """Raised when the configured model cannot generate a response."""
+
+
+def get_configured_model_id() -> str:
+    model_id = os.getenv("GAIALAB_MODEL_ID", "").strip()
+    if not model_id:
+        raise ModelConfigurationError(
+            "No model is configured. Set GAIALAB_MODEL_ID to a local model path "
+            "or Hugging Face model ID, then restart the app."
+        )
+    return model_id
+
+
 @lru_cache(maxsize=1)
 def load_model(model_id: str):
     """Load one configured local or Hugging Face model per app process."""
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    # Preserve the latest user turn and generation prompt when context is truncated.
+    tokenizer.truncation_side = "left"
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         device_map="auto" if torch.cuda.is_available() else None,
-        torch_dtype="auto",
+        # Transformers 5 uses `dtype`; `torch_dtype` is deprecated compatibility API.
+        dtype="auto",
     )
     if tokenizer.pad_token_id is None:
+        if tokenizer.eos_token_id is None:
+            raise ModelConfigurationError(
+                "The configured tokenizer has neither a pad token nor an EOS token."
+            )
         tokenizer.pad_token_id = tokenizer.eos_token_id
+    if not tokenizer.chat_template:
+        raise ModelConfigurationError(
+            "The configured tokenizer has no chat template. Choose a compatible "
+            "instruction model."
+        )
+    model.eval()
     return tokenizer, model
 
 
-def respond(message: str, mode: str, max_new_tokens: int) -> str:
-    model_id = os.getenv("GAIALAB_MODEL_ID", "").strip()
-    if not model_id:
-        return (
-            "Configuration error: no model is configured. Set GAIALAB_MODEL_ID "
-            "to a local model path or Hugging Face model ID, then restart the app."
-        )
+def generate_response(message: str, mode: str, max_new_tokens: int = 192) -> str:
+    """Generate one response or raise a typed, caller-safe error."""
     if not message.strip():
-        return "Please enter a message or business question."
+        raise ValueError("Please enter a message or business question.")
+    if mode not in SYSTEM_PROMPTS:
+        raise ValueError(f"Unsupported language mode: {mode}.")
+    max_new_tokens = max(1, min(int(max_new_tokens), 512))
+    model_id = get_configured_model_id()
 
     try:
         tokenizer, model = load_model(model_id)
@@ -58,7 +89,14 @@ def respond(message: str, mode: str, max_new_tokens: int) -> str:
         prompt = tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        context_window = int(getattr(model.config, "max_position_embeddings", 4096))
+        max_input_tokens = max(1, context_window - max_new_tokens)
+        inputs = tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=max_input_tokens,
+        ).to(model.device)
         with torch.inference_mode():
             output = model.generate(
                 **inputs,
@@ -71,14 +109,30 @@ def respond(message: str, mode: str, max_new_tokens: int) -> str:
             )
         generated = output[0, inputs["input_ids"].shape[1] :]
         response = tokenizer.decode(generated, skip_special_tokens=True).strip()
-        return response or "The configured model returned an empty response."
-    except KeyError:
-        return f"Unsupported language mode: {mode}."
-    except Exception as exc:  # Gradio should show a friendly error, not a traceback.
-        return f"Model error: {type(exc).__name__}: {exc}"
+        if not response:
+            raise ModelGenerationError("The configured model returned an empty response.")
+        return response
+    except (ModelConfigurationError, ModelGenerationError):
+        raise
+    except Exception as exc:
+        raise ModelGenerationError(
+            "Generation failed. Check the model ID, local files, available memory, "
+            "and internet connection."
+        ) from exc
 
 
-def build_demo() -> gr.Blocks:
+def respond(message: str, mode: str, max_new_tokens: int) -> str:
+    """Gradio-safe wrapper that does not expose internal paths or credentials."""
+    try:
+        return generate_response(message, mode, max_new_tokens)
+    except (ModelConfigurationError, ModelGenerationError, ValueError) as exc:
+        LOGGER.warning("Assistant request failed: %s", exc)
+        return f"Error: {exc}"
+
+
+def build_demo():
+    import gradio as gr
+
     with gr.Blocks(title="GaiaLab Naija Assistant") as demo:
         gr.Markdown("# GaiaLab Naija Assistant")
         gr.Markdown(

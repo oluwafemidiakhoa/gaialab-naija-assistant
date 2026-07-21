@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 
 import torch
 from datasets import load_from_disk
-from peft import LoraConfig
+from peft import LoraConfig, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTConfig, SFTTrainer
 
@@ -27,7 +26,23 @@ def main() -> None:
     if not torch.cuda.is_available():
         raise RuntimeError("QLoRA training requires a CUDA GPU. Use Colab or Kaggle.")
 
+    if not args.dataset_dir.is_dir():
+        raise FileNotFoundError(
+            f"Prepared dataset not found: {args.dataset_dir}. Run prepare_dataset first."
+        )
     dataset = load_from_disk(str(args.dataset_dir))
+    missing_splits = {"train", "validation"} - set(dataset)
+    if missing_splits:
+        raise ValueError(
+            f"Prepared dataset is missing split(s): {', '.join(sorted(missing_splits))}."
+        )
+    if not dataset["train"] or not dataset["validation"]:
+        raise ValueError("Train and validation splits must both contain records.")
+    required_columns = {"prompt", "completion"}
+    if not required_columns.issubset(dataset["train"].column_names):
+        raise ValueError(
+            "Prepared training data must contain conversational prompt and completion columns."
+        )
     tokenizer = AutoTokenizer.from_pretrained(args.model_id, use_fast=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -43,9 +58,14 @@ def main() -> None:
         args.model_id,
         quantization_config=quantization,
         device_map="auto",
-        torch_dtype=compute_dtype,
+        dtype=compute_dtype,
     )
     model.config.use_cache = False
+    model = prepare_model_for_kbit_training(
+        model,
+        use_gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
+    )
 
     peft_config = LoraConfig(
         r=16,
@@ -53,7 +73,7 @@ def main() -> None:
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM",
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+        target_modules="all-linear",
     )
     training_args = SFTConfig(
         output_dir=str(args.output_dir),
@@ -63,6 +83,7 @@ def main() -> None:
         per_device_eval_batch_size=2,
         gradient_accumulation_steps=8,
         gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
         learning_rate=2e-4,
         logging_steps=5,
         eval_strategy="steps",
@@ -73,6 +94,9 @@ def main() -> None:
         fp16=compute_dtype == torch.float16,
         report_to="none",
         max_length=1024,
+        completion_only_loss=True,
+        optim="paged_adamw_8bit",
+        seed=42,
     )
     trainer = SFTTrainer(
         model=model,
@@ -85,9 +109,6 @@ def main() -> None:
     trainer.train()
     trainer.save_model()
     tokenizer.save_pretrained(args.output_dir)
-
-    if os.getenv("HF_TOKEN"):
-        print("HF_TOKEN detected. Publish manually after reviewing the model card and outputs.")
 
 
 if __name__ == "__main__":
