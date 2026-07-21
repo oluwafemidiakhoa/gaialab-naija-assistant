@@ -10,11 +10,13 @@ venv/
 .idea/
 .vscode/
 .DS_Store
-outputs/
+outputs/*
+!outputs/.gitkeep
 artifacts/
 checkpoints/
 prepared_data/
 evaluation/results*.jsonl
 wandb/
+*.tfevents.*
 *.safetensors
 *.bin

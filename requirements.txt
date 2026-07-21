@@ -7,4 +7,6 @@ accelerate>=1.2,<2
 bitsandbytes>=0.45,<1; platform_system == "Linux"
 gradio>=5.12,<7
 huggingface-hub>=0.27,<1
+PyYAML>=6.0,<7
+tensorboard>=2.16,<3
 pytest>=8.0,<10
