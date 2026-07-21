@@ -10,8 +10,8 @@ These rules apply to all future Codex work in this repository.
   reproducible artefact in the repository supports the claim.
 - Never add copyrighted, scraped, private, or ambiguously licensed training data.
   Every dataset row must include specific `source` and `license` values.
-- Treat the 20 bundled records as synthetic schema demonstrations, not as a
-  production-quality dataset.
+- Treat GaiaLab Naija Dataset v0.1 as a 100-record draft pending Nigerian human
+  review, not as a production-quality or culturally validated dataset.
 - Keep Nigerian English and Nigerian Pidgin distinct without presenting either as
   culturally uniform. Invite review from speakers and small-business owners.
 
