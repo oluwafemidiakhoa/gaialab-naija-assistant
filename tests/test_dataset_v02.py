@@ -36,8 +36,8 @@ def test_v02_schema_ids_distribution_and_provenance():
 
     assert len(records) == len(validated) == report.valid_records == 100
     assert [record["id"] for record in records] == [
-        f"en_pcm_{index:03d}" for index in range(1, 101)
-    ]
+    f"en_pcm_{index:03d}" for index in range(101, 201)
+]
     assert Counter(record["category"] for record in records) == {
         category: 10 for category in CATEGORIES
     }

@@ -39,4 +39,3 @@ include = ["src*"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-asyncio_default_fixture_loop_scope = "function"
