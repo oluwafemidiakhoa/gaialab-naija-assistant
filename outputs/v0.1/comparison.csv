@@ -1,0 +1,302 @@
+benchmark_name,benchmark_version,benchmark_sha256,base_model_id,adapter_path,id,category,difficulty,language,instruction,input,base_response,adapter_response,base_instruction_following,base_meaning_preservation,base_naturalness,base_professional_tone,base_safety,base_hallucination,base_business_usefulness,base_overall,adapter_instruction_following,adapter_meaning_preservation,adapter_naturalness,adapter_professional_tone,adapter_safety,adapter_hallucination,adapter_business_usefulness,adapter_overall,preferred_response,comparison_notes
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-001,customer_service,easy,Nigerian English,Draft a customer-service reply about missing installation hardware.,"A customer bought a wall-mounted freezer. The technician arrived, but the mounting bracket listed on the delivery note was not included. A replacement date has not been confirmed.","Dear [Customer's Name],
+
+I hope this message finds you well. I am writing to address your concern regarding the missing installation hardware for your wall-mounted freezer.
+
+Firstly, thank you for bringing this matter to our attention. We understand that such issues can be frustrating, especially when they arise during the installation process.
+
+The delivery note provided with your order clearly states the required hardware components, including the mounting bracket. Unfortunately, these brackets were not included in the initial shipment. This oversight may have caused inconvenience or even frustration for you.
+
+We appreciate your patience as we work diligently to resolve this issue. Our team will ensure prompt delivery of all necessary hardware components to prevent any further delays. Additionally, we will provide you with a detailed list of the items that need to be installed, so you can make informed decisions about what is needed.
+
+Please let us know if there are any specific details or concerns related to the missing hardware. We are committed to resolving this promptly and addressing your needs effectively.
+
+Thank you once again for your understanding and cooperation. If you require any further assistance or have additional questions, please don't hesitate to contact us.
+
+Best regards,
+
+[Your Company Name]  
+[Contact Information]","We apologize that you have not received your freezer. We will contact our supplier to confirm the exact model number of the bracket we need. Once we know the model number, we can arrange for a replacement bracket as soon as possible. Please keep us posted so we can coordinate with the supplier.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-002,customer_service,medium,Nigerian English,Respond to a customer reporting an unreadable label on a sealed food product.,The batch number and best-before date on a jar of ground pepper are smudged. Ask for the details needed to investigate and respond safely.,"When dealing with a customer who reports an unreadable label on a sealed food product, it's important to gather all necessary details promptly. Here’s how you can proceed:
+
+1. **Identify the Product**: Determine which type of ground pepper is involved. Common varieties include black pepper, white pepper, red pepper, and green pepper.
+
+2. **Check the Label**: Carefully examine the label provided by the customer. Look for any markings or text that might indicate the product was sold under a different name or brand.
+
+3. **Review the Best-Before Date**: The best-before date (BPD) should be noted on the label. This indicates when the product must be used before it loses its quality.
+
+4. **Inspect the Smudged Area**: If there is a smudge on the label, note where it appears and what color it is. This could help identify if the label has been tampered with or if it needs to be replaced.
+
+5. **Contact the Supplier**: Reach out to the company that produced the ground pepper. They may have a record of such issues or provide guidance on how to address them.
+
+6. **Report the Issue**: Inform the relevant authorities about the issue. This could involve contacting local government agencies, food safety organizations, or","Please provide the following details:
+
+  * The batch number
+  * The best before date
+  * The seal or packaging type (e.g., plastic, metal)
+  * Any other relevant information such as the size of the jar or the contents of the jar
+
+Once we have this information, we will be able to determine if there is any damage to the label and what action should be taken next.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-003,customer_service,hard,Nigerian English,Write a fair response about accidental damage to a rented item.,A client says heavy rain damaged three rented chairs before an outdoor event began. The business has not inspected the chairs and the rental agreement must be checked.,"Accidental damage to a rented item can indeed occur during events or other activities where people may come into contact with it. This is particularly concerning when such items are shared among multiple individuals who might not have been aware of their condition beforehand.
+
+For your business, it's crucial to ensure that all rented items are properly inspected and maintained according to the rental agreement. Here’s how you can proceed:
+
+1. **Inspect Before Use**: Before any use, especially if there are multiple people involved, inspect each item thoroughly. Check for signs of wear, damage, or potential hazards like cracks or loose parts.
+
+2. **Document Damage**: Keep detailed records of any damages found. This documentation will be useful for insurance claims and future reference.
+
+3. **Check Rental Agreement**: Review the rental agreement to understand what constitutes as ""accidental damage."" Ensure that the terms regarding inspections and maintenance are clear and enforceable.
+
+4. **Notify Management**: Inform your management team immediately upon discovering any damage. They should then take appropriate action, which could include contacting the manufacturer or supplier for replacement parts or repairs.
+
+5. **Insurance Coverage**: If the damage is covered under your insurance policy, make sure to inform them promptly so they can arrange for compensation.
+
+6. **Follow Up**: After addressing the issue","The rental agreement should include a clause that specifies how damages will be covered if they occur during the rental period. If the damage is caused by the client's actions or negligence, the business may have grounds to claim compensation from the client.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-004,customer_service,medium,Nigerian Pidgin,Reply for respectful Nigerian Pidgin to a customer wey pay for same-day pickup but meet the shop closed early.,"Acknowledge the inconvenience. Offer to arrange another collection time or discuss delivery, but no promise say delivery go free.","I apologize for any inconvenience you may have experienced. I understand your concern about the timing of deliveries. 
+
+To address this issue, I would suggest that we explore alternative arrangements such as:
+
+1. Arranging a later collection time.
+2. Discussing a different delivery method (e.g., express delivery).
+3. Exploring additional service options like expedited shipping.
+
+Please let me know if there's anything else I can assist with regarding these alternatives.",Thank you for your patience. We will consider your request. If you need any further assistance please contact us.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-005,customer_service,easy,Nigerian English,"Respond to a request for a receipt carrying an earlier, incorrect date.",The customer paid today but wants the receipt dated last month. Decline the incorrect date and offer an accurate receipt.,"Dear [Customer's Name],
+
+Thank you for your prompt payment. Unfortunately, we have received your invoice from yesterday, which is dated January 15th. We regret that our records show this invoice was issued on January 1st. As per our current system, receipts should be dated as of the day they were issued.
+
+We kindly ask that you provide us with the correct date for your receipt so that we can issue it accurately. If you need any further assistance or have any questions regarding this matter, please feel free to contact us at [Your Contact Information].
+
+Thank you once again for your business.
+
+Best regards,
+
+[Your Name]  
+[Your Position]  
+[Company Name]  
+[Contact Number]  
+[Email Address]","Please note that the receipt is dated today, so it does not reflect the correct date of the transaction. We will provide you with an accurate receipt as soon as possible.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-006,customer_service,hard,Nigerian English,Draft a public reply to a serious product-authenticity complaint.,A social-media comment claims the shop sold a counterfeit item. The business has not verified the order or product. Move the discussion to a private channel without exposing customer information.,"Subject: Re: Concerns About Counterfeit Item Sold
+
+Dear [Customer's Name],
+
+I hope this message finds you well. I am writing to address your concern about the sale of a counterfeit item at our store. As per the details provided, we have not confirmed the authenticity of the purchase or the product itself.
+
+To ensure that we can provide a satisfactory resolution, please follow these steps:
+
+1. **Verify the Order**: Ensure that the order is genuine and matches the description on the website or any other official documentation.
+2. **Check Product Authenticity**: Contact the seller directly to verify if the product is genuine. This could involve contacting the manufacturer or checking their official website.
+3. **Contact Customer Service**: Reach out to our customer service team to discuss the situation further. They may be able to assist with resolving the issue more efficiently.
+
+We appreciate your patience as we work towards resolving this matter. If there are any additional steps required from us, please let us know so we can proceed accordingly.
+
+Thank you for bringing this to our attention. We value your trust and will take all necessary measures to ensure a smooth process.
+
+Best regards,
+
+[Your Full Name]  
+[Your Position]  
+[Business Name]  
+[Contact Information]
+
+---
+
+This response maintains confidentiality by",We appreciate your concern about the authenticity of our products. We will investigate this matter further and provide you with a response as soon as possible. Please let us know if there is anything we can assist you with.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-007,business_terminology,easy,Nigerian English,Explain how a purchase order differs from a supplier quotation.,Use a simple example involving a small office ordering printer paper. Do not present the explanation as legal advice.,"A purchase order is a formal document used by businesses to request goods or services from suppliers. It outlines the terms of the transaction, including the quantity, price, payment terms, delivery date, and any other details that specify the nature of the item being purchased. The purpose of a purchase order is to ensure that both parties understand the terms of the agreement and to facilitate smooth communication between the buyer and seller.
+
+On the other hand, a supplier quotation is a more informal document provided by a supplier to a business before they agree to sell them goods or services. This document typically includes detailed specifications, pricing, and delivery plans. A supplier quotation serves as a preliminary offer to the buyer, allowing them to make informed decisions about purchasing the product or service.
+
+In summary, while a purchase order is a formal contract with specific terms, a supplier quotation is a preliminary offer that helps the buyer assess the value and quality of the product or service before making a decision.","A purchase order is a formal document that outlines the terms of a contract between two parties. It specifies the quantity and price of goods or services to be delivered by the seller. A supplier quotation, on the other hand, is a more informal document that shows the cost of producing a product or service. It includes details such as materials used, labor costs, and delivery times.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-008,business_terminology,medium,Nigerian English,Explain gross profit and net profit without treating either as cash in the bank.,"A small bakery wants a simple explanation that includes sales, direct production costs, and wider operating expenses.","Gross Profit is calculated by subtracting the cost of goods sold (COGS) from total revenue. It represents the amount of money left after covering all direct production costs and other operating expenses.
+
+Net Profit, on the other hand, is calculated by subtracting the total operating expenses from the gross profit. This gives you the actual profit made by the business after accounting for all its operational costs.
+
+In summary, Gross Profit shows how much money the bakery has left over after paying for everything it bought to make its products. Net Profit, however, reflects the final profit the bakery makes after deducting all operating expenses from its gross profit.",Gross profit is the difference between total revenue and cost of goods sold (COGS). Net profit is the difference between total revenue and COGS after deducting all operating expenses.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-009,business_terminology,medium,Nigerian Pidgin,Explain stock shrinkage for Nigerian Pidgin.,"Use examples such as damaged goods, counting mistakes, or missing items. No accuse any worker without evidence.","""Stock shrinkage"" is a term used to describe when the quantity of something purchased from a supplier decreases compared to what was ordered. This can happen due to various reasons like:
+
+1. **Counting Mistakes**: When someone accidentally counts more items than they should have, it's called ""counting mistakes."" For example, if you order 50 units but only receive 48, that would be counted as a mistake.
+
+2. **Damaged Goods**: If there were issues with the goods themselves (like damage during transportation), this could lead to a decrease in stock. For instance, if a shipment arrived with broken packaging, it might need to be restocked.
+
+3. **Missing Items**: Sometimes, even after receiving all the orders, some items may still be left over. This could happen if the supplier didn't deliver everything on time or if there were delays in processing the order.
+
+4. **Inadequate Supply**: If the supplier doesn’t meet the demand, it can cause stock shrinkage. For example, if the supplier delivers too much at once instead of ordering enough to meet the customer’s needs.
+
+To avoid stock shrinkage, businesses should always check their orders against their actual inventory before placing new orders. They should also ensure that suppliers are",Stock shrinkage means that some of your things aren't as good as they should be. It's like when you lose a toy or card because someone counted it wrong. We don't say anyone is to blame unless we have proof.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-010,business_terminology,hard,Nigerian Pidgin,Explain consignment sales for Nigerian Pidgin.,"A craft maker leaves products with a gift shop, and the shop pays for items after they sell. Mention the need to record the agreement clearly.","""Consignment Sales"" is when a craftsman sends their finished goods to a store as a gift, and the store then sells them back to the craftsman at a later date. This method helps both parties benefit from each other's business success. To ensure clear records, it's important to write down all details like the order number, quantity, price, and delivery date. This way, if there’s any issue or dispute, it can be easily traced back to the original contract.",Consignment Sales is when you give your product to another person who will take it home or sell it on. The shop gives you money for the item once it's sold. Remember to write down the details clearly so everyone knows what happened.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-011,business_terminology,easy,Nigerian English,Explain supplier lead time in simple business language.,"A phone-accessory seller orders stock today, but the supplier needs time to prepare and deliver it.",Supplier Lead Time: This is the amount of time a company has to wait before they can use the product from their supplier. It's like waiting for your favorite toy to arrive at the store before you can buy it. This delay helps ensure that customers have enough time to make purchases without being stuck with unsold items.,Supplier lead time is the amount of time a supplier has before they can start delivering your order.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-012,business_terminology,hard,Nigerian Pidgin,Explain accounts receivable and overdue amounts for Nigerian Pidgin.,"A cleaning business has completed work for three offices and issued bills, but two offices never reach their payment dates while one don pass due date.","""Accounts Receivable"" is like a piggy bank where businesses keep money they owe to customers. It's full of money that hasn't been paid yet. 
+
+""Overdue Amounts"" are how much money is still owed after all payments have been made. Imagine if you had 10 cookies, but only ate 3 before your friend got them. You'd still owe 7 cookies because you didn't eat them all by the end of the day.
+
+In this case, the ""cleaning business"" (like a big company) owes money to two offices (like a few friends). But one office (the one who doesn't pay) has already passed its last cookie (the due date), so it can't get any more cookies from the other office (who did pay).
+
+So, the ""accounts receivable"" is the money the business keeps, and the ""overdue amount"" is how many cookies haven't been eaten yet.",Accounts receivable is the money owed by a company to its customers. Overdue amounts means that some of the money you owe your customer hasn't been paid yet.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-013,translation_en_to_pidgin,medium,Nigerian Pidgin,Translate the message into natural Nigerian Pidgin.,We received four of the six cartons on the delivery note. Please check the remaining two cartons and update us before noon.,"Iyi, we got four of the six cartons on the delivery note. Kudu kuma kuchunu ko niyanin hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai hai",We got four cartons from the delivery note. Please check the other two cartons and tell us by noon.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-014,translation_en_to_pidgin,easy,Nigerian Pidgin,Translate this payment-control message into respectful Nigerian Pidgin.,Please do not make the transfer until we confirm the account details in writing.,Kuchun kuma tarihin ni toh ni yin ukuwa ni mbaa aminu. Kuma nipa ni toh ni yin ukuwa ni mbaa aminu.,Noku mewa kuma nuko watake naa. Noku wa baan ukuwa naa.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-015,translation_en_to_pidgin,hard,Nigerian Pidgin,Translate this repair update into Nigerian Pidgin without adding certainty.,The generator repair may take one additional day because the required part has not arrived.,"Akan kan aye yoo madiyin kuma ayi ọrọ n'aa. Oya jẹ iroyin oye, ka ọdụkọ n'iroyin oye.",The repair will take another day because we need a new part.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-016,translation_en_to_pidgin,medium,Nigerian Pidgin,Translate this event-vendor notice into natural Nigerian Pidgin.,Your booth has moved from the main hall to the covered courtyard. The setup time remains 7 a.m.,"Iyi oke, iya kuma iya. Oye, iya kuma iya. Iyi oke, iya kuma iya. Oye, iya kuma iya.",Booth move from hall to courtyard. Setup time is 7 am.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-017,translation_en_to_pidgin,hard,Nigerian Pidgin,Translate this allergen notice into clear Nigerian Pidgin.,These pastries contain groundnuts and should not be served to anyone with a groundnut allergy.,Aloka n'orin kuma madi ni ọdun yoo aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu aadu a,This notice says these cookies have nuts inside them and shouldn't be shared with people who have nut allergies.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-018,translation_en_to_pidgin,easy,Nigerian Pidgin,Translate this reservation message into polite Nigerian Pidgin.,"We can hold the fabric until noon tomorrow. After that, we may release it to another customer.","Iyi kuma, iya aye. Kuma, iya aye. Iyi kuma, iya aye.","We can keep your fabric till noon tomorrow. After that, you may give it to another customer.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-019,translation_pidgin_to_en,medium,Nigerian English,Translate this Nigerian Pidgin stock update into professional Nigerian English.,Supplier never bring the remaining bags. We go count wetin arrive and send you the correct balance this evening.,"Here is the translation of the given Nigerian Pidgin stock update into professional Nigerian English:
+
+""Supplier does not deliver the remaining bags. We will check the arrival time and provide you with the correct balance tonight.""
+
+This translation maintains the meaning and tone of the original statement while adhering to professional English conventions.",The supplier has never brought the remaining bags. We will check the quantity of each bag before we proceed with the delivery. Please confirm the total amount to be sent by tonight's evening.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-020,translation_pidgin_to_en,easy,Nigerian English,Translate this Nigerian Pidgin safety message into clear Nigerian English.,Abeg no use the cream again until we check the batch number and talk to you.,"Here is the translation of the Nigerian Pidgin safety message into clear Nigerian English:
+
+""Use the cream only after we verify the batch number and discuss with you.""
+
+This translation maintains the key elements of the original message while adapting it to sound natural in Nigerian English.",Do not use the cream again until we verify the batch number and discuss with you.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-021,translation_pidgin_to_en,hard,Nigerian English,Translate this Nigerian Pidgin rental update into professional Nigerian English.,Na only two tables return without damage. We still dey inspect the other four before we send final report.,"Here is the translation of the given Nigerian Pidgin rental update into professional Nigerian English:
+
+""Two tables returned without any damage. We still check the remaining four tables after sending out our final report.""
+
+This translation maintains the meaning and structure of the original statement while adhering to professional English conventions.",Two tables returned without damage. We will inspect the remaining four tables before sending a final report.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-022,translation_pidgin_to_en,medium,Nigerian English,Translate this Nigerian Pidgin account update into professional Nigerian English.,"We don match five payments, but one transfer still no get order number. Abeg confirm the sender name.","Here is the translation of the Nigerian Pidgin account update into professional Nigerian English:
+
+""We don't match five payments, but one transfer still hasn't received a transaction order number. Abeg confirms that the sender's name has been confirmed.""","We have received five payments, but only one has yet to receive a transaction order number. The sender's name is confirmed by Abeg.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-023,translation_pidgin_to_en,hard,Nigerian English,Translate this Nigerian Pidgin delivery condition into clear Nigerian English.,"If rain heavy tomorrow morning, we fit move the delivery to afternoon, but we go call you first.","Here is the translation of the Nigerian Pidgin delivery condition into clear Nigerian English:
+
+""If it rains heavily tomorrow morning, we will move the delivery to afternoons, but we will call you first.""
+
+This translation maintains the key elements of the original statement while adapting it to sound natural in Nigerian English.","If it rains heavily tomorrow morning, we will move the delivery to afternoons, but we will call you first.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-024,translation_pidgin_to_en,easy,Nigerian English,Translate this Nigerian Pidgin booking message into professional Nigerian English.,"Customer wey book 10 a.m. cancel, so that time don open if you still want am.","Here is the translation of the Nigerian Pidgin booking message into professional Nigerian English:
+
+""Customer, I booked 10 a.m., but I need to cancel due to unforeseen circumstances. If you're interested in rescheduling, please let me know by 3 p.m. tomorrow.""
+
+This translation maintains the informal tone of the original message while ensuring it reads clearly and professionally in Nigerian English.","The customer has booked 10 a.m., but will be cancelling it soon. So please let us know when you can make your reservation again.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-025,business_writing,medium,Nigerian English,Write a discrepancy email to a supplier.,"The invoice lists 24 desk lamps, but the business received 21. Three delivered lamps also have cracked shades. Request a review and correction without accusing the supplier.","Subject: Inquiry Regarding Desk Lamp Delivery
+
+Dear [Supplier's Name],
+
+I hope this message finds you well.
+
+I am writing to bring to your attention a matter of concern regarding our recent order from your company. Specifically, I would like to raise some discrepancies that we believe may be affecting our delivery process.
+
+We were informed that you had ordered 24 desk lamps, which is correct according to the invoice. However, upon closer inspection, it appears that only 21 lamps were actually delivered to us. Additionally, three of these lamps have been found to have cracked their shades.
+
+These issues have caused us considerable inconvenience and frustration. We understand that such errors can lead to delays or even cancellations of orders, which could impact our financial performance negatively.
+
+To address this situation, we kindly request that you take immediate action to rectify the problem. Please provide us with a detailed explanation of how these lamps were delivered and any steps taken to ensure they meet our standards.
+
+We appreciate your prompt response and look forward to resolving this issue as soon as possible. If there are any further actions required, please let us know at your earliest convenience.
+
+Thank you for your understanding and cooperation.
+
+Best regards,
+
+[Your Full Name]  
+[Your Position]  
+[Your Contact Information]","Subject: Re: Desk Lamp Order
+
+Dear [Supplier's Name],
+
+I hope this message finds you well. I am writing to discuss our recent order of desk lamps. We received 21 desks with 24 lamps, which is correct according to the invoice. However, we received three additional lamps that were damaged during delivery. The third lamp has cracked shades, which we believe may be defective. 
+
+We would like to request a review of these items and any other issues we may have encountered. Please let us know if there is anything else we can assist you with or if you need further clarification on the issue at hand.
+
+Thank you for your attention to this matter. We look forward to hearing from you soon.
+
+Best regards,
+
+[Your Full Name]  
+[Your Position]  
+[Your Contact Information]",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-026,business_writing,hard,Nigerian English,Draft a written scope-change request for a client.,A client originally booked photography for a two-hour product launch and now wants an extra interview session. Ask to confirm timing and explain that price and delivery date may change.,"Subject: Request for Scope-Change
+
+Dear [Client's Name],
+
+I hope this message finds you well. I am writing to discuss a potential scope change regarding our photography services for your upcoming product launch event.
+
+We have been working with you on a series of photography sessions designed to capture key moments during the launch. Initially, we planned for a 2-hour session, but we have decided to extend it to 3 hours due to unforeseen circumstances. This additional time is necessary to ensure all aspects of the launch are captured effectively.
+
+The reason behind this change is that we anticipate needing more time to prepare for any technical issues or unexpected delays that might arise during the extended session. We understand that this could potentially affect the overall quality of the photos, which is why we want to make sure we cover all elements of the launch.
+
+Additionally, we would like to clarify the pricing details. The original plan was $50 per hour, but we have agreed to adjust the rate to $60 per hour. This increase will be applied retroactively to the 3-hour session, meaning the new rate applies from the start until the end of the 3-hour period.
+
+Lastly, we kindly ask for your approval before making any changes to the schedule. If there are any adjustments needed","Subject: Request for Change in Photography Booking
+
+Dear [Client's Name],
+
+We hope this message finds you well. We have been working with your company on a photography project for a two-hour launch event. However, we would like to make some changes to the booking process.
+
+The original agreement was for a two-hour shoot at 10am. The client has requested an additional interview session of one hour. This will be held at 2pm. 
+
+As per our previous agreement, the price is $500. Delivery date remains unchanged as it is currently set for next week.
+
+Please let us know if there is any other detail or time needed from the client. We appreciate your understanding and flexibility.
+
+Thank you for considering our proposal. We look forward to hearing back soon.
+
+Best regards,
+
+[Your Full Name]  
+[Your Position]  
+[Your Company]  
+[Your Contact Information]",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-027,business_writing,easy,Nigerian English,Write a clear staff rota notice.,"From next week, the shop will use two shifts: 8 a.m.–2 p.m. and 2 p.m.–8 p.m. Staff should confirm their assigned shift with the supervisor by Friday.","Subject: Staff Rota Notice
+
+Dear [Supervisor's Name],
+
+I hope this message finds you well. I am writing to inform you that from next week, we will be operating under a new schedule of shifts. Specifically, we will be using two shifts:
+
+1. **Shift 1**: 8 a.m.-2 p.m.
+   - This shift is reserved for our sales team who will be responsible for selling products during these hours.
+
+2. **Shift 2**: 2 p.m.-8 p.m.
+   - This shift is dedicated to our customer service team who will be available to assist customers throughout the day.
+
+We kindly ask all employees to confirm their assigned shift with the supervisor as soon as possible. If there are any changes or adjustments needed, please let us know immediately so we can make necessary arrangements.
+
+Thank you for your cooperation and understanding. We look forward to continuing to provide excellent service and support to our customers.
+
+Best regards,
+
+[Your Full Name]
+[Your Position]
+[Your Contact Information]",The shop is using two shifts this week: 8 a.m.–2 p.m. and 2 p.m.–8 p.m. The new schedule has been confirmed with your supervisor by Friday. Please ensure you have confirmed your shift before Monday to avoid any confusion or inconvenience.,,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-028,business_writing,medium,Nigerian English,Write an introductory wholesale email to an independent retailer.,"A soap maker wants to introduce unscented and citrus bar soaps. Offer to send a catalogue, ingredient list, minimum quantities, and current prices. Do not claim guaranteed sales.","Subject: Introducing Unscented and Citrus Bar Soaps - A Comprehensive Catalogue
+
+Dear [Retailer's Name],
+
+I hope this message finds you well. I am writing to introduce our new range of unscented and citrus bar soaps, designed specifically for those looking for a healthier alternative to traditional soap products. Our goal is to offer a product that not only meets your needs but also enhances your skin's natural benefits.
+
+To ensure we meet all your requirements, we have prepared a detailed catalogue with essential information about each product. The ingredients list will provide you with the exact details needed to make informed purchasing decisions. Additionally, we have included the minimum quantities required to ensure a smooth delivery process.
+
+Our current prices are competitive and reflect the quality and value we believe in. We understand that price can be a significant factor when making purchasing decisions, and we aim to keep our prices as low as possible while still providing excellent value for money.
+
+We would love to discuss how we can work together to bring these soaps to your store or online platform. If you're interested in exploring this opportunity further, please let us know at [Your Contact Information]. We look forward to the possibility of working with you on this exciting project.
+
+Thank you for considering our proposal. We","Dear [Retailer's Name],
+
+We hope this message finds you well. We have been working with your company on introducing new products that we believe will be of interest to our customers. Our team has reviewed all the details and is ready to provide you with a catalogue, ingredients list, minimum quantities, and current prices. Please let us know if there is anything else you would like to discuss or if you need any further assistance.
+
+Thank you for considering our proposal. We look forward to hearing from you soon.
+
+Best regards,
+
+[Your Name]  
+[Your Position]  
+[Company Name]",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-029,business_writing,hard,Nigerian English,Draft a cancellation notice for a paid workshop.,"The venue is unexpectedly unavailable. State that participants will receive the refund process and revised options by email tomorrow, but do not invent when bank credits will appear.","Subject: Cancellation Notice - Workshop
+
+Dear Participants,
+
+We regret to inform you that due to unforeseen circumstances at our venue, we are unable to conduct this workshop as scheduled. We understand the inconvenience this may cause, and we want to assure you of your right to receive a full refund or revised options via email.
+
+Please note that the payment process and any changes to your registration details will be processed through the official website or platform where the workshop was conducted. Your bank account details will be updated accordingly, and you should expect to see your payment credited within 24 hours.
+
+If you have any questions regarding the cancellation or need further assistance, please do not hesitate to contact us directly. We appreciate your understanding and cooperation during this challenging time.
+
+Thank you for your continued support and interest in our workshops.
+
+Best regards,
+[Your Name]
+[Your Position]  
+[Contact Information]","We regret to inform you that we have been unable to arrange a time to hold this workshop due to unforeseen circumstances. We kindly ask that you cancel your registration as soon as possible so that we can make arrangements to accommodate you.
+Please note that participants will be notified of the cancellation process via email tomorrow. However, it is important to keep in mind that bank credits may take some time to arrive. Please check with your bank or credit card provider for any updates on your account status.",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,GB-AF-030,business_writing,easy,Nigerian Pidgin,Write a respectful Nigerian Pidgin reminder for people wey register for a business clinic.,"The clinic starts at 9 a.m. on Wednesday. Attendees should bring their registration code, and seats cannot be transferred without prior confirmation.","Hey folks! 
+
+I'm here to remind you about something important. We have a special event happening today where we're going to get some new clients. To make sure everyone gets a chance, I need your registration number. It's like when you get a ticket to go somewhere - it helps us know who's coming. If you forget yours, we can't give you a spot. So, please remember to bring your registration number with you. And if you want to change seats, we'll need your permission too. Just let me know before you go, okay?","Hey folks, you're all set to attend the clinic. We need your registration code so we can book your spot. If you have it, just give us your name and phone number. Seats aren't transferable unless we get permission first. Good luck!",,,,,,,,,,,,,,,,,,
+GaiaBench Africa,v0.1,31fb21cb4fe17bd5fc52ca23c9738fa4b10e83306e77816effe6e8c47beb63a6,Qwen/Qwen2.5-0.5B-Instruct,/content/gaialab-adapter-v0.1/best_adapter,AVERAGE_SCORE_PLACEHOLDER,,,,,,,,,,,,,,,,,,,,,,,,,

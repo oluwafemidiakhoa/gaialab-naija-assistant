@@ -1,0 +1,19 @@
+{
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "dataset": "data/gaialab_naija_v0.1.jsonl",
+  "dataset_records": 100,
+  "train_records": 80,
+  "validation_records": 20,
+  "best_checkpoint": "/content/gaialab-adapter-v0.1/checkpoint-15",
+  "best_metric": 2.058072090148926,
+  "global_step": 15,
+  "train_metrics": {
+    "train_runtime": 53.7412,
+    "train_samples_per_second": 4.466,
+    "train_steps_per_second": 0.279,
+    "total_flos": 63220915507200.0,
+    "train_loss": 2.2781373103459677,
+    "epoch": 3.0
+  },
+  "human_evaluation_completed": false
+}
