@@ -1,0 +1,15 @@
+model: Qwen/Qwen2.5-0.5B-Instruct
+dataset: data/v0.2/prepared/gaialab_naija_v0.2_combined.jsonl
+learning_rate: 0.0002
+epochs: 3
+batch_size: 2
+gradient_accumulation: 8
+lora_rank: 16
+lora_alpha: 32
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+evaluation_frequency: 1
+seed: 42

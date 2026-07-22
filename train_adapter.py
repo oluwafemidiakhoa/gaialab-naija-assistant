@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import logging
+import random
 import shutil
 import sys
 from dataclasses import asdict, dataclass
@@ -227,9 +228,51 @@ def configure_logging(output_dir: Path) -> logging.Logger:
     return logger
 
 
-def load_split_records(config: AdapterTrainingConfig):
+def load_split_records(
+    config: AdapterTrainingConfig,
+    validation_ratio: float = 0.20,
+):
+    """Validate records and create a deterministic train/validation split."""
+    if isinstance(validation_ratio, bool) or not isinstance(
+        validation_ratio, (int, float)
+    ):
+        raise TrainingConfigurationError(
+            "'validation_ratio' must be a number greater than 0 and less than 1."
+        )
+    validation_ratio = float(validation_ratio)
+    if not 0 < validation_ratio < 1:
+        raise TrainingConfigurationError(
+            "'validation_ratio' must be greater than 0 and less than 1."
+        )
+
     records, report = validate_records(read_jsonl(Path(config.dataset)))
-    train_records, validation_records = split_records(records, seed=config.seed)
+
+    # Preserve the original v0.1 behavior and test expectations.
+    if validation_ratio == 0.20:
+        train_records, validation_records = split_records(
+            records,
+            seed=config.seed,
+        )
+        return train_records, validation_records, report
+
+    if len(records) < 2:
+        raise TrainingConfigurationError(
+            "The dataset must contain at least two valid records."
+        )
+
+    shuffled_records = list(records)
+    random.Random(config.seed).shuffle(shuffled_records)
+
+    validation_count = max(1, round(len(shuffled_records) * validation_ratio))
+    train_count = len(shuffled_records) - validation_count
+
+    if train_count < 1:
+        raise TrainingConfigurationError(
+            "The dataset does not contain enough records for training."
+        )
+
+    train_records = shuffled_records[:train_count]
+    validation_records = shuffled_records[train_count:]
     return train_records, validation_records, report
 
 
@@ -290,7 +333,13 @@ def prepare_datasets(train_records, validation_records, tokenizer):
     return DatasetDict(prepared)
 
 
-def train(config: AdapterTrainingConfig, output_dir: Path, resume: str | None, patience: int):
+def train(
+    config: AdapterTrainingConfig,
+    output_dir: Path,
+    resume: str | None,
+    patience: int,
+    validation_ratio: float = 0.20,
+):
     import torch
 
     if not torch.cuda.is_available():
@@ -309,7 +358,10 @@ def train(config: AdapterTrainingConfig, output_dir: Path, resume: str | None, p
 
     logger = configure_logging(output_dir)
     set_seed(config.seed)
-    train_records, validation_records, report = load_split_records(config)
+    train_records, validation_records, report = load_split_records(
+        config,
+        validation_ratio=validation_ratio,
+    )
     logger.info("Validated %d unique dataset records.", report.valid_records)
 
     tokenizer = AutoTokenizer.from_pretrained(config.model, use_fast=True)
@@ -428,6 +480,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Validate configuration and dataset without loading a model or training.",
     )
+    parser.add_argument(
+        "--validation-ratio",
+        type=float,
+        default=0.20,
+        help=(
+            "Fraction of validated records reserved for validation. "
+            "Use 0.10 for the GaiaLab Naija v0.2 180/20 split."
+        ),
+    )
     return parser
 
 
@@ -439,7 +500,10 @@ def main() -> int:
                 "--early-stopping-patience must be a positive integer."
             )
         config = load_training_config(args.config)
-        train_records, validation_records, report = load_split_records(config)
+        train_records, validation_records, report = load_split_records(
+            config,
+            validation_ratio=args.validation_ratio,
+        )
         if args.validate_only:
             print(
                 json.dumps(
@@ -456,7 +520,13 @@ def main() -> int:
             )
             return 0
         resume = resolve_resume_checkpoint(args.resume_from_checkpoint, args.output_dir)
-        train(config, args.output_dir, resume, args.early_stopping_patience)
+        train(
+            config,
+            args.output_dir,
+            resume,
+            args.early_stopping_patience,
+            validation_ratio=args.validation_ratio,
+        )
     except (ImportError, OSError, RuntimeError, TrainingConfigurationError, ValueError) as exc:
         print(f"Adapter training failed: {exc}", file=sys.stderr)
         return 1
