@@ -11,6 +11,8 @@ venv/
 .vscode/
 .DS_Store
 outputs/*
+!outputs/v0.1/
+!outputs/v0.1/**
 !outputs/.gitkeep
 artifacts/
 checkpoints/
