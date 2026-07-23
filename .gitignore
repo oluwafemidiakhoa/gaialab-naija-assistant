@@ -22,3 +22,7 @@ wandb/
 *.tfevents.*
 *.safetensors
 *.bin
+# Local model artifacts
+models/
+# Generated benchmark outputs
+evaluation/results/
