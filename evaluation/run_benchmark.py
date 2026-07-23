@@ -9,6 +9,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
+from peft import PeftConfig, PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 DEFAULT_BENCHMARK = Path("evaluation/gaia_benchmark_v0.1.jsonl")
 DEFAULT_OUTPUT = Path("evaluation/results.jsonl")
@@ -132,21 +134,51 @@ def build_prompt(record: dict[str, Any], tokenizer: Any) -> str:
 
 
 def load_model(model_id: str):
-    """Load a configurable open Hugging Face model locally."""
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
-    tokenizer.truncation_side = "left"
-    model_kwargs: dict[str, Any] = {"torch_dtype": "auto"}
+    try:
+        peft_config = PeftConfig.from_pretrained(model_id)
+        base_model_id = peft_config.base_model_name_or_path
+        is_adapter = True
+    except Exception:
+        base_model_id = model_id
+        is_adapter = False
+
+    print(f"Loading tokenizer from: {base_model_id}")
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        base_model_id,
+        use_fast=True,
+    )
+
+    model_kwargs = {
+        "dtype": torch.float16 if torch.cuda.is_available() else torch.float32,
+    }
+
     if torch.cuda.is_available():
         model_kwargs["device_map"] = "auto"
-    model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
-    if tokenizer.pad_token_id is None:
-        if tokenizer.eos_token_id is None:
-            raise BenchmarkError("Tokenizer has no pad token or end-of-sequence token.")
-        tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    print(f"Loading base model from: {base_model_id}")
+
+    base_model = AutoModelForCausalLM.from_pretrained(
+        base_model_id,
+        **model_kwargs,
+    )
+
+    if is_adapter:
+        print(f"Loading PEFT adapter from: {model_id}")
+        model = PeftModel.from_pretrained(
+            base_model,
+            model_id,
+        )
+    else:
+        model = base_model
+
+    if not torch.cuda.is_available():
+        model = model.to("cpu")
+
     model.eval()
+
     return tokenizer, model, torch
 
 
