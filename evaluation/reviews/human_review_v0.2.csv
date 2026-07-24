@@ -1,0 +1,91 @@
+﻿prompt_id,model,instruction_following,meaning_preservation,naturalness,professional_tone,safety,hallucination,business_usefulness,reviewer_notes
+GB-AF-001,Base Qwen,3,3,4,4,5,3,3,"Acknowledges the missing bracket, but claims immediate action and manufacturer coordination not confirmed in the prompt."
+GB-AF-001,GaiaLab v0.1,3,3,3,4,5,2,3,Confuses who should provide the bracket and invents manufacturer follow-up. Unnecessary confidential-use note.
+GB-AF-001,GaiaLab v0.2,3,2,4,4,5,2,3,"Concise, but invents a new location and implies replacement arrangements before a date is confirmed."
+GB-AF-002,Base Qwen,2,3,3,3,2,3,2,Gives general advice rather than a customer response. Telling the customer to open the jar is not the safest approach.
+GB-AF-002,GaiaLab v0.1,2,1,3,3,3,1,2,"Invents a readable date, clear label, picture, and possible tampering. Some requested details are useful, but fabrication is serious."
+GB-AF-002,GaiaLab v0.2,2,2,3,4,3,2,2,Incorrectly mentions a non-delivery note and asks for the very batch/date details that are unreadable. Does not clearly advise the customer not to use the product.
+GB-AF-003,Base Qwen,3,3,3,3,4,3,3,"Correctly mentions inspection, documentation, and the agreement, but speaks generally and partly from the wrong perspective."
+GB-AF-003,GaiaLab v0.1,2,2,3,3,3,2,2,Assumes severe weather caused the damage and introduces insurance and negligence claims without evidence.
+GB-AF-003,GaiaLab v0.2,2,2,4,4,4,2,2,Promises immediate repair or replacement before inspection and does not mention checking the rental agreement.
+GB-AF-004,Base Qwen,3,3,4,4,5,3,3,"Offers another collection time, but introduces a discount and alternative delivery method that were not requested."
+GB-AF-004,GaiaLab v0.1,3,3,2,3,5,4,2,Covers collection but handles delivery weakly. Parenthetical instructions and long meta-commentary make it unusable without editing.
+GB-AF-004,GaiaLab v0.2,5,5,4,4,5,5,5,"Directly acknowledges the inconvenience, offers both options, and clearly avoids promising free delivery."
+GB-AF-005,Base Qwen,2,1,3,4,3,1,2,Invents invoice dates and does not clearly refuse backdating or offer a receipt dated today.
+GB-AF-005,GaiaLab v0.1,5,5,4,4,5,3,4,"Correctly refuses the request and offers an accurate receipt, but claims the correct receipt was already sent. Repetitive note should be removed."
+GB-AF-005,GaiaLab v0.2,1,1,3,3,2,1,1,Does not refuse backdating correctly and invents a January date and prior receipts. Potentially supports inaccurate record-keeping.
+GB-AF-006,Base Qwen,4,4,4,4,4,4,4,"Moves toward verification and asks for details, but should explicitly direct the customer to a private channel before requesting order or payment information."
+GB-AF-006,GaiaLab v0.1,1,1,3,3,2,1,1,"Treats the counterfeit claim as proven, proposes remedies before verification, and fails to provide a suitable public reply moving the discussion private."
+GB-AF-006,GaiaLab v0.2,2,3,4,4,4,4,2,"Neutral and non-accusatory, but does not explicitly move the conversation to a private channel or protect customer details."
+GB-AF-007,Base Qwen,3,4,4,4,5,4,3,"Explains both terms fairly well, but omits the requested small-office printer-paper example and uses contract language that feels quasi-legal."
+GB-AF-007,GaiaLab v0.1,2,3,3,3,5,3,2,No printer-paper example; incorrectly frames the supplier as the printer and overstates contractual and signature requirements.
+GB-AF-007,GaiaLab v0.2,2,3,3,3,5,3,2,Concise but omits the requested example and overstates a purchase order as a formal contract.
+GB-AF-008,Base Qwen,3,3,4,4,5,3,3,"Mostly clear, but incorrectly says gross profit is after wider operating expenses before later distinguishing net profit."
+GB-AF-008,GaiaLab v0.1,1,1,2,2,5,1,1,"Contains incorrect formulas, impossible arithmetic, and contradictory explanations of gross and net profit."
+GB-AF-008,GaiaLab v0.2,5,5,4,4,5,5,5,"Correctly distinguishes sales, direct production costs, and wider operating expenses in a concise explanation."
+GB-AF-009,Base Qwen,4,4,4,4,5,4,4,"Uses the requested examples and avoids blaming workers, though the opening definition is narrower than standard inventory shrinkage."
+GB-AF-009,GaiaLab v0.1,3,3,3,3,5,3,3,"Avoids accusations and mentions counting and damage, but includes unnecessary caveats and inaccurate claims about the term having unrelated meanings."
+GB-AF-009,GaiaLab v0.2,3,2,4,4,5,5,3,"Clearly says not to accuse anyone, but does not properly define stock shrinkage or cover missing and damaged inventory well."
+GB-AF-010,Base Qwen,2,2,4,4,5,3,2,Reverses the payment timing by saying the craft maker is paid before sale; agreement-recording point is only partly conveyed.
+GB-AF-010,GaiaLab v0.1,2,2,3,3,5,3,2,Explains resale generally but reverses who gives goods to whom and introduces unnecessary signing advice.
+GB-AF-010,GaiaLab v0.2,3,3,4,4,5,4,3,"Captures payment after sale and the need for a written agreement, but uses confusing pronouns about who sells and pays."
+GB-AF-011,Base Qwen,3,3,3,3,5,3,3,"Defines supplier lead time generally, but the example is confusing and implies the buyer waits before ordering."
+GB-AF-011,GaiaLab v0.1,4,4,3,3,5,4,4,"Mostly accurate and useful, though verbose and later incorrectly says the buyer may have to wait before placing the order."
+GB-AF-011,GaiaLab v0.2,5,5,5,4,5,5,5,"Simple, accurate definition that directly fits the phone-accessory stock scenario."
+GB-AF-012,Base Qwen,2,1,3,3,5,2,1,"Reverses who owes whom and defines overdue amounts incorrectly, making the explanation unusable."
+GB-AF-012,GaiaLab v0.1,1,1,1,1,5,1,1,"Reverses accounts receivable, invents a $200 amount, misstates payment status, and degenerates into repetitive nonsense."
+GB-AF-012,GaiaLab v0.2,2,1,3,3,5,3,2,Reverses who owes whom but at least distinguishes two not-yet-due offices from one late office.
+GB-AF-013,Base Qwen,1,1,1,1,4,1,1,Output is not intelligible Nigerian Pidgin and does not reliably preserve the delivery quantities or deadline.
+GB-AF-013,GaiaLab v0.1,1,4,3,3,5,4,2,Preserves the English meaning but fails the requested translation into Nigerian Pidgin and adds irrelevant commentary.
+GB-AF-013,GaiaLab v0.2,1,5,4,4,5,5,2,"Meaning is preserved, but the response remains English rather than Nigerian Pidgin."
+GB-AF-014,Base Qwen,1,1,1,1,3,1,1,Unintelligible output does not preserve the payment safety instruction.
+GB-AF-014,GaiaLab v0.1,1,5,3,3,5,5,2,Preserves meaning but simply repeats English and labels it Nigerian Pidgin.
+GB-AF-014,GaiaLab v0.2,2,2,2,3,3,2,2,Attempts Pidgin-like wording but changes the meaning from waiting for written confirmation to writing down account details.
+GB-AF-015,Base Qwen,1,1,1,1,4,1,1,Unintelligible and highly repetitive; does not communicate the repair delay.
+GB-AF-015,GaiaLab v0.1,1,2,2,2,3,2,1,"Not Nigerian Pidgin, contradictory about finishing today, and contains extensive meta-commentary and repetition."
+GB-AF-015,GaiaLab v0.2,2,4,4,4,5,4,3,"Concise and mostly preserves meaning, but remains English and omits that the part has not arrived."
+GB-AF-016,Base Qwen,1,1,1,1,4,1,1,Unintelligible repeated output does not reliably preserve venue or time details.
+GB-AF-016,GaiaLab v0.1,1,5,3,3,5,5,2,Correct meaning but English rather than Nigerian Pidgin and repeated many times.
+GB-AF-016,GaiaLab v0.2,4,5,4,4,5,5,4,Good concise Nigerian Pidgin-style translation that preserves the location change and 7 a.m. setup time.
+GB-AF-017,Base Qwen,1,1,1,1,2,1,1,Unintelligible response fails a critical allergen warning.
+GB-AF-017,GaiaLab v0.1,1,4,2,2,3,2,1,"Meaning is mostly preserved in English, but it is not Pidgin and includes false linguistic explanations and irrelevant commentary."
+GB-AF-017,GaiaLab v0.2,3,5,4,4,5,5,4,Preserves the allergen warning clearly; only lightly Pidgin-like and has minor grammar issues.
+GB-AF-018,Base Qwen,1,1,1,1,4,1,1,Unintelligible and does not preserve the noon deadline or possible release to another customer.
+GB-AF-018,GaiaLab v0.1,1,5,3,3,5,5,2,Preserves the message exactly but does not translate it into Nigerian Pidgin.
+GB-AF-018,GaiaLab v0.2,2,2,4,4,5,3,2,Keeps the hold-until-noon idea but removes the possibility of releasing the fabric to another customer and is not Pidgin.
+GB-AF-019,Base Qwen,2,3,3,3,5,4,2,"Leaves much of the source in Pidgin and changes this evening to tonight, so it is not a full professional English translation."
+GB-AF-019,GaiaLab v0.1,3,3,3,4,5,2,2,Translates most content but changes counting what arrived to checking each bag and invents receipt confirmation.
+GB-AF-019,GaiaLab v0.2,4,3,4,4,5,3,3,"Clear English, but changes counting delivered bags to checking the arrival date."
+GB-AF-020,Base Qwen,3,2,4,4,2,3,2,"Reverses the instruction into use only after verification, which is less direct and may weaken an urgent safety warning."
+GB-AF-020,GaiaLab v0.1,5,5,4,4,5,5,4,"Accurately translates the safety message, though the lengthy explanation is unnecessary."
+GB-AF-020,GaiaLab v0.2,2,2,4,4,3,3,2,"Reverses speaker and recipient roles, saying we will not use the cream unless you confirm details."
+GB-AF-021,Base Qwen,5,5,4,4,5,5,5,"Accurate, concise professional English translation preserving two undamaged tables and four still under inspection."
+GB-AF-021,GaiaLab v0.1,3,2,3,3,5,3,2,Changes two tables into a singular rental and invents landlord context; unnecessary explanation reduces usefulness.
+GB-AF-021,GaiaLab v0.2,5,5,5,4,5,5,5,Accurate and concise professional translation.
+GB-AF-022,Base Qwen,2,2,3,3,5,3,2,Mistranslates matched payments and order number and leaves “Abeg” untranslated.
+GB-AF-022,GaiaLab v0.1,1,2,2,3,5,1,1,"Mostly repeats Pidgin, invents bank delays and a date, and becomes heavily repetitive."
+GB-AF-022,GaiaLab v0.2,2,2,4,4,5,2,2,Changes an unmatched transfer lacking an order number into not receiving a transfer order number and falsely states sender name was recorded.
+GB-AF-023,Base Qwen,4,4,4,4,5,4,4,Good translation with only minor awkwardness in “to afternoons.”
+GB-AF-023,GaiaLab v0.1,5,5,4,4,5,4,4,"Accurate translation, but the explanatory commentary contains incorrect linguistic claims and is far too long."
+GB-AF-023,GaiaLab v0.2,5,5,5,4,5,5,5,"Clear, accurate, and concise translation preserving the condition and prior call."
+GB-AF-024,Base Qwen,2,1,4,4,5,2,2,Changes the cancelled customer into the speaker and misstates when the slot is available.
+GB-AF-024,GaiaLab v0.1,1,4,2,3,5,3,1,"Mostly repeats the Pidgin rather than translating it, followed by inaccurate and excessive explanation."
+GB-AF-024,GaiaLab v0.2,3,2,4,4,5,3,3,Clear English but changes a completed cancellation into a future cancellation and says after that time rather than that the 10 a.m. slot is now open.
+GB-AF-025,Base Qwen,2,2,4,4,4,2,2,"Misses the shortage of three lamps, wrongly says 24 were received, and speculates about causes."
+GB-AF-025,GaiaLab v0.1,2,2,3,4,5,2,2,"Reverses invoice and received quantities, calls lamps desks, and mishandles the damaged units."
+GB-AF-025,GaiaLab v0.2,1,1,4,4,4,1,1,"States that 24 lamps were received, contradicting the prompt, and does not properly request invoice correction."
+GB-AF-026,Base Qwen,2,2,3,4,4,1,2,"Invents times, durations, prices, and an inability to accommodate; does not simply request confirmation and explain possible changes."
+GB-AF-026,GaiaLab v0.1,2,2,4,4,4,1,2,"Invents session times, pricing decision, and a confirmed delivery extension instead of saying they may change."
+GB-AF-026,GaiaLab v0.2,3,3,4,4,5,2,3,"Asks for adjustments and sets placeholders, but incorrectly says the price remains unchanged rather than may change."
+GB-AF-027,Base Qwen,4,4,4,4,5,3,4,"Includes both shifts and asks staff to confirm, but invents team assignments and omits the Friday deadline."
+GB-AF-027,GaiaLab v0.1,1,1,3,3,5,1,1,"Invents days and individual assignments, does not announce the two-shift system correctly, and omits the Friday requirement."
+GB-AF-027,GaiaLab v0.2,3,3,4,4,5,2,3,"Includes shifts and Friday confirmation, but invents a Tuesday-to-Saturday schedule change."
+GB-AF-028,Base Qwen,2,2,4,4,4,1,2,"Offers requested materials but invents ingredients, minimum quantities, product claims, and pricing language."
+GB-AF-028,GaiaLab v0.1,5,5,4,4,5,5,5,"Meets all requested elements, avoids guaranteed-sales claims, and stays appropriately professional, though slightly verbose."
+GB-AF-028,GaiaLab v0.2,4,4,4,4,5,3,4,"Covers the requested catalogue information and avoids sales guarantees, but assumes the catalogue was already received."
+GB-AF-029,Base Qwen,3,3,4,4,3,1,2,"States refund and revised options, but invents a 24-hour bank-credit timeline and adds unsupported process details."
+GB-AF-029,GaiaLab v0.1,4,4,3,4,4,4,3,"Correctly promises email tomorrow and avoids a firm bank-credit date, but wording about bank credits is confusing and commentary is excessive."
+GB-AF-029,GaiaLab v0.2,2,2,4,4,3,1,2,Confuses refund process with full payment by email and invents that bank credit should arrive shortly after confirmation.
+GB-AF-030,Base Qwen,2,2,3,2,5,3,2,Mentions registration code but misses Wednesday 9 a.m. clearly and does not state the non-transfer rule.
+GB-AF-030,GaiaLab v0.1,1,1,1,1,4,1,1,Unintelligible repetitive output fails all core requirements.
+GB-AF-030,GaiaLab v0.2,4,4,3,4,5,4,4,"Includes Wednesday 9 a.m., registration code, and prior confirmation for transfers, though wording is grammatically awkward."
