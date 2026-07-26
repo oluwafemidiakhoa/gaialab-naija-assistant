@@ -1,136 +1,216 @@
----
-base_model: Qwen/Qwen2.5-0.5B-Instruct
-library_name: peft
-pipeline_tag: text-generation
-license: apache-2.0
-language:
-  - en
-  - pcm
-tags:
-  - lora
-  - peft
-  - nigeria
-  - nigerian-pidgin
-  - business-assistant
----
+# GaiaLab Naija Assistant
 
-# GaiaLab Naija Adapter v0.1
+GaiaLab Naija Assistant is an open-source AI research project focused on practical language models for Nigerian communication, small-business support, customer service, professional writing, and locally relevant assistance.
 
-GaiaLab Naija Adapter v0.1 is an experimental LoRA adapter trained on
-`Qwen/Qwen2.5-0.5B-Instruct`.
+## Current Release
 
-It explores Nigerian small-business communication, business writing,
-Nigerian English, and Nigerian Pidgin.
-
-## Intended use
-
-The adapter is designed for research and experimentation involving:
-
-- Nigerian small-business customer communication
-- Professional business-writing assistance
-- English-to-Nigerian-Pidgin translation
-- Nigerian-Pidgin-to-English translation
-- Explanation of common business terminology
-
-## Training data
-
-- 100 curated examples
-- 80 training records
-- 20 validation records
-- 5 task categories
-
-The dataset includes:
-
-- Customer-service responses
-- Nigerian business terminology
-- English-to-Nigerian-Pidgin translation
-- Nigerian-Pidgin-to-English translation
-- Business writing
-
-## Training configuration
+**GaiaLab Naija Assistant v0.3**
 
 - Base model: `Qwen/Qwen2.5-0.5B-Instruct`
-- Fine-tuning method: LoRA
+- Training method: LoRA
+- Total reviewed records: 212
+- Training records: 170
+- Validation records: 42
 - Epochs: 3
-- Training records: 80
-- Validation records: 20
+- LoRA rank: 16
+- LoRA alpha: 32
+- Final validation loss: 1.305
+- Status: Experimental research release
 
-## Training results
+## Project Goals
 
-- Final training loss: `2.342`
-- Final evaluation loss: `2.106`
+- Nigerian small-business communication
+- Customer-service responses
+- Professional emails and WhatsApp business messages
+- Nigerian English and Nigerian Pidgin
+- Delivery and payment updates
+- Agriculture-related assistance
+- AI literacy and scam-awareness guidance
 
-These results confirm that the adapter-training pipeline completed
-successfully. They do not prove that the adapter is more accurate than
-the base model across all tasks.
+## Repository Structure
 
-## Preliminary evaluation
+```text
+app/          Application files
+config/       General project configuration
+data/         Training and evaluation datasets
+evaluation/   Human review and benchmark tools
+notebooks/    Research and experimentation notebooks
+outputs/      Training and evaluation outputs
+scripts/      Data preparation and utility scripts
+src/          Core source code
+tests/        Automated tests
+training/     Training configurations
+```
 
-Initial testing showed mixed results:
+## v0.3 Training Pipeline
 
-- Business-writing responses were generally clear and professional.
-- Customer-service responses were polite but sometimes omitted requested details.
-- Nigerian Pidgin translation quality was inconsistent.
-- Some terminology responses contained factual errors.
-- The model occasionally added information that was not present in the prompt.
+1. Dataset collection
+2. Human review
+3. Approval extraction
+4. Dataset normalization
+5. Training-data validation
+6. LoRA adapter training
+7. Validation-loss evaluation
+8. Manual response testing
+9. Model release and documentation
 
-This release should therefore be treated as a research prototype.
+## Training Configuration
 
-## Limitations
+```yaml
+model: Qwen/Qwen2.5-0.5B-Instruct
+dataset: data/v0.3/prepared/gaialab_naija_v0.3_training_ready.jsonl
+learning_rate: 0.0002
+epochs: 3
+batch_size: 2
+gradient_accumulation: 8
+lora_rank: 16
+lora_alpha: 32
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+evaluation_frequency: 1
+seed: 42
+```
 
-The model may:
+## v0.3 Results
 
-- Produce inaccurate information
-- Change or omit details during translation
-- Generate unnatural Nigerian Pidgin
-- Misunderstand cultural or business context
-- Add unsupported facts or explanations
-- Hallucinate business, legal, tax, financial, or regulatory guidance
+| Metric | Result |
+|---|---:|
+| Total reviewed records | 212 |
+| Training records | 170 |
+| Validation records | 42 |
+| Epoch 1 validation loss | 1.450 |
+| Epoch 2 validation loss | 1.335 |
+| Epoch 3 validation loss | 1.305 |
+| Final training loss | 1.789 |
+| Training runtime | 112.6 seconds |
 
-Human review is required before real-world use.
+Validation loss improved across all three epochs:
 
-## Loading the adapter
+```text
+1.450 → 1.335 → 1.305
+```
+
+## Initial Evaluation
+
+**Prompt**
+
+```text
+Write a polite message telling a customer that their order will arrive tomorrow instead of today.
+```
+
+**Model response**
+
+```text
+Dear [Customer Name], we regret to inform you that your order has been delayed until tomorrow due to unforeseen circumstances. We apologize for any inconvenience this may cause and look forward to receiving your confirmation once it arrives.
+```
+
+| Category | Score |
+|---|---:|
+| Professional tone | 5/5 |
+| Grammar | 5/5 |
+| Fluency | 5/5 |
+| Instruction following | 4/5 |
+| Factual consistency | 3/5 |
+
+The response was professional, but it added details not explicitly provided. Future versions will focus on stronger instruction fidelity and reduced hallucination.
+
+## Installation
+
+```bash
+git clone https://github.com/oluwafemidiakhoa/gaialab-naija-assistant.git
+cd gaialab-naija-assistant
+python -m venv .venv
+```
+
+Windows activation:
+
+```bash
+.venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Validate the Dataset
+
+```bash
+python train_adapter.py \
+  --config training/v0.3_config.yaml \
+  --output-dir models/v0.3 \
+  --validate-only
+```
+
+## Train the Adapter
+
+A CUDA-enabled GPU is required.
+
+```bash
+python train_adapter.py \
+  --config training/v0.3_config.yaml \
+  --output-dir models/v0.3
+```
+
+Google Colab or Kaggle is recommended.
+
+## Use the v0.3 Adapter
 
 ```python
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-base_model_id = "Qwen/Qwen2.5-0.5B-Instruct"
-adapter_id = "mgbam/gaialab-naija-adapter-v0.1"
+base_model_name = "Qwen/Qwen2.5-0.5B-Instruct"
+adapter_name = "mgbam/gaialab-naija-adapter-v0.3"
 
-tokenizer = AutoTokenizer.from_pretrained(base_model_id)
-
+tokenizer = AutoTokenizer.from_pretrained(adapter_name)
 base_model = AutoModelForCausalLM.from_pretrained(
-    base_model_id,
+    base_model_name,
     dtype=torch.float16,
-    device_map="auto"
+    device_map="auto",
 )
-
-model = PeftModel.from_pretrained(
-    base_model,
-    adapter_id
-)
-
+model = PeftModel.from_pretrained(base_model, adapter_name)
 model.eval()
+```
 
-Load the tokenizer from the base model because it contains the correct
-Qwen chat template.
+## Limitations
 
-Model repository
+- The adapter was trained on a relatively small dataset.
+- It may add details that were not provided by the user.
+- Nigerian Pidgin coverage remains limited.
+- It should not be used as the sole source for legal, medical, financial, or safety-critical decisions.
+- Human review is recommended before professional use.
 
-Hugging Face:
+## v0.4 Roadmap
 
-mgbam/gaialab-naija-adapter-v0.1
+- Larger reviewed dataset
+- Fixed evaluation benchmark
+- Improved instruction adherence
+- Reduced hallucination
+- Better Nigerian English and Pidgin coverage
+- Automated model-version comparison
 
-Source code
+## Responsible Use
 
-GitHub:
+This project is intended for research, education, and responsible experimentation. Verify important information and keep humans involved in high-impact decisions.
 
-oluwafemidiakhoa/gaialab-naija-assistant
+## License
 
-Disclaimer
+This project is released under the MIT License. The Qwen base model remains subject to its own license and usage terms.
 
-This is an experimental research release. Generated responses should be
-reviewed before use in business, legal, financial, tax, medical, or
-regulatory contexts.
+## Author
+
+**Oluwafemi Idiakhoa**  
+Founder, GaiaLab AI  
+AI Researcher and Engineer
+
+## Links
+
+- GitHub: https://github.com/oluwafemidiakhoa/gaialab-naija-assistant
+- Hugging Face: https://huggingface.co/mgbam/gaialab-naija-adapter-v0.3
+- GaiaLab AI: https://www.gailabai.com
