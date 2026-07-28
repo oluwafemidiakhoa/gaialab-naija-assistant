@@ -1,0 +1,94 @@
+{
+  "category_counts": {
+    "agriculture": 20,
+    "banking": 20,
+    "business_writing": 20,
+    "education": 20,
+    "government_services": 20,
+    "healthcare": 20,
+    "nigerian_pidgin": 20,
+    "small_business": 20,
+    "technology_support": 20,
+    "travel": 20
+  },
+  "dataset_status": "draft_pending_independent_nigerian_human_review",
+  "dataset_version": "v0.6",
+  "license": "CC0-1.0",
+  "outputs": {
+    "all": "data\\v0.6\\generated\\v0.6_all.jsonl",
+    "training": "data\\v0.6\\generated\\v0.6_training.jsonl",
+    "validation": "data\\v0.6\\generated\\v0.6_validation.jsonl"
+  },
+  "record_count": 200,
+  "risk_level_counts": {
+    "high": 60,
+    "low": 70,
+    "medium": 70
+  },
+  "source_files": [
+    {
+      "path": "data\\v0.6\\examples\\banking.csv",
+      "record_count": 20,
+      "sha256": "36779e894b3d4e7cd93437dc6f201e6156953cfaf9112c1c3ff84a8c017bf91b"
+    },
+    {
+      "path": "data\\v0.6\\examples\\healthcare.csv",
+      "record_count": 20,
+      "sha256": "7e811454b05735ea6f8ade29d385929c4a793c0a8b91de16dce8e61a6341531c"
+    },
+    {
+      "path": "data\\v0.6\\examples\\government_services.csv",
+      "record_count": 20,
+      "sha256": "9fab2f7ca9109b36820461e4da0f52265eaec688acb5b39541a917dbeb816629"
+    },
+    {
+      "path": "data\\v0.6\\examples\\education.csv",
+      "record_count": 20,
+      "sha256": "43e6cf481390b422ec0344dbb207b018e116b74bffadb6d6860ce3abdbb411c8"
+    },
+    {
+      "path": "data\\v0.6\\examples\\agriculture.csv",
+      "record_count": 20,
+      "sha256": "ea85f96789d9c716a1c9c0b9889beb269e07db9016a96ed213f34c1886da04cc"
+    },
+    {
+      "path": "data\\v0.6\\examples\\travel.csv",
+      "record_count": 20,
+      "sha256": "61cabded1ba1f4d2e956ca77d60365695d2829c51ef66c7d386fd48ce7ee5fb7"
+    },
+    {
+      "path": "data\\v0.6\\examples\\technology_support.csv",
+      "record_count": 20,
+      "sha256": "9625dd0efedeaf65ad5eb3f604293dceff2406601c1330f1892acc3d71e482d4"
+    },
+    {
+      "path": "data\\v0.6\\examples\\small_business.csv",
+      "record_count": 20,
+      "sha256": "7903858e8ea76f79a55e8716fd5df7de29e78b5517978c958bcbe3fa052496b6"
+    },
+    {
+      "path": "data\\v0.6\\examples\\nigerian_pidgin.csv",
+      "record_count": 20,
+      "sha256": "210f2985bb2cb2f4cd5820ca4e6b7dad3daeb0e08171f8d02252add78b5fbfea"
+    },
+    {
+      "path": "data\\v0.6\\examples\\business_writing.csv",
+      "record_count": 20,
+      "sha256": "a37d73bcb2ef4be3ff74a4ebb63853e1a7d3ff50de25591142e309dd2b42df00"
+    }
+  ],
+  "split": {
+    "algorithm": "sha256_rank_within_category_and_risk_level",
+    "multi_record_strata_policy": "at_least_one_record_in_each_split",
+    "requested_validation_fraction": 0.2,
+    "seed": "gaialab-naija-v0.6",
+    "singleton_strata_policy": "training",
+    "training_records": 170,
+    "validation_records": 30
+  },
+  "validation": {
+    "duplicate_ids": 0,
+    "duplicate_normalized_prompts": 0,
+    "required_columns": "passed"
+  }
+}

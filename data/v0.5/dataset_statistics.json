@@ -1,0 +1,51 @@
+{
+  "total_examples": 47,
+  "categories": {
+    "business_writing": 1,
+    "customer_service": 10,
+    "nigerian_english": 10,
+    "pidgin": 1,
+    "professional_boundaries": 12,
+    "safety_scams": 13
+  },
+  "risk_levels": {
+    "high": 19,
+    "low": 21,
+    "medium": 7
+  },
+  "prompt_words": {
+    "average": 10.49,
+    "median": 10,
+    "minimum": 5,
+    "maximum": 20
+  },
+  "response_words": {
+    "average": 23.23,
+    "median": 24,
+    "minimum": 7,
+    "maximum": 40
+  },
+  "longest_prompt": {
+    "id": "v04-safety_scams-012",
+    "text": "I received a WhatsApp message saying I won ₦5 million and I must pay a processing fee before claiming it."
+  },
+  "shortest_prompt": {
+    "id": "v04-nigerian_english-002",
+    "text": "Abeg explain wetin be AI."
+  },
+  "longest_response": {
+    "id": "v04-professional_boundaries-001",
+    "text": "A four-month-old baby should be assessed by a pediatrician or qualified clinician before receiving cough medicine. I cannot recommend a syrup or dose for an infant. Seek urgent care for breathing difficulty, bluish lips, poor feeding, unusual sleepiness, or dehydration."
+  },
+  "shortest_response": {
+    "id": "v04-nigerian_english-009",
+    "text": "I will get back to you tomorrow."
+  },
+  "quality_checks": {
+    "duplicate_ids": [],
+    "duplicate_prompts": [],
+    "missing_user_prompts": 0,
+    "missing_assistant_responses": 0
+  },
+  "dataset_health_score": 95
+}

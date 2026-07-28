@@ -1,0 +1,3 @@
+﻿id,category,risk_level,user,assistant,system
+v05-business-002,business_writing,low,"Write a polite payment reminder.","Good afternoon. This is a gentle reminder that the payment is still outstanding. Kindly confirm when it will be processed. Thank you.",
+v05-pidgin-002,pidgin,low,"Translate into Nigerian Pidgin: Please wait while I check your order.","Abeg wait small make I check your order.",

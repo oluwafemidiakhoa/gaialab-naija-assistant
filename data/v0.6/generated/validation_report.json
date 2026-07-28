@@ -1,0 +1,44 @@
+{
+  "category_counts": {
+    "agriculture": 20,
+    "banking": 20,
+    "business_writing": 20,
+    "education": 20,
+    "government_services": 20,
+    "healthcare": 20,
+    "nigerian_pidgin": 20,
+    "small_business": 20,
+    "technology_support": 20,
+    "travel": 20
+  },
+  "checks": {
+    "allowed_risk_levels": "passed",
+    "duplicate_ids": 0,
+    "duplicate_normalized_prompts": 0,
+    "id_prefix_v06": "passed",
+    "non_empty_user_and_assistant": "passed",
+    "required_columns": "passed",
+    "source_synthetic": "passed",
+    "status_draft": "passed"
+  },
+  "dataset_version": "v0.6",
+  "generated_outputs": {
+    "combined_records": 200,
+    "split_covers_combined": true,
+    "split_overlap": 0,
+    "training_records": 170,
+    "validation_records": 30
+  },
+  "limitations": [
+    "Draft examples pending independent review by Nigerian speakers and domain professionals.",
+    "This validation checks structure and duplication; it does not establish cultural or domain correctness."
+  ],
+  "record_count": 200,
+  "risk_level_counts": {
+    "high": 60,
+    "low": 70,
+    "medium": 70
+  },
+  "source_file_count": 10,
+  "status": "passed"
+}

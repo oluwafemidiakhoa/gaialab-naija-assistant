@@ -1,0 +1,66 @@
+{
+  "category_counts": {
+    "agriculture": 20,
+    "banking": 20,
+    "business_writing": 20,
+    "education": 20,
+    "government_services": 20,
+    "healthcare": 20,
+    "nigerian_pidgin": 20,
+    "small_business": 20,
+    "technology_support": 20,
+    "travel": 20
+  },
+  "character_counts": {
+    "assistant": 34004,
+    "user": 10267
+  },
+  "dataset_status": "draft_pending_independent_nigerian_human_review",
+  "dataset_version": "v0.6",
+  "risk_level_counts": {
+    "high": 60,
+    "low": 70,
+    "medium": 70
+  },
+  "split_category_counts": {
+    "training": {
+      "agriculture": 17,
+      "banking": 17,
+      "business_writing": 17,
+      "education": 17,
+      "government_services": 17,
+      "healthcare": 17,
+      "nigerian_pidgin": 17,
+      "small_business": 17,
+      "technology_support": 17,
+      "travel": 17
+    },
+    "validation": {
+      "agriculture": 3,
+      "banking": 3,
+      "business_writing": 3,
+      "education": 3,
+      "government_services": 3,
+      "healthcare": 3,
+      "nigerian_pidgin": 3,
+      "small_business": 3,
+      "technology_support": 3,
+      "travel": 3
+    }
+  },
+  "split_risk_level_counts": {
+    "training": {
+      "high": 50,
+      "low": 60,
+      "medium": 60
+    },
+    "validation": {
+      "high": 10,
+      "low": 10,
+      "medium": 10
+    }
+  },
+  "total_records": 200,
+  "training_records": 170,
+  "validation_records": 30
+}
