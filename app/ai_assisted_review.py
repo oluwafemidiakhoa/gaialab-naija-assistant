@@ -23,6 +23,7 @@ from src.review_automation.models import (  # noqa: E402
     AdvisoryRecommendation,
     ReviewAutomationModelError,
 )
+from src.review_automation.guided import approval_blockers  # noqa: E402
 from src.review_automation.queue import QueueFilters, build_queue  # noqa: E402
 from src.review_automation.refresh import refresh_review_outputs  # noqa: E402
 from src.review_automation.revisions import (  # noqa: E402
@@ -337,9 +338,21 @@ def run(*, configure_page: bool = True) -> None:
     )
     if decisions:
         action = st.selectbox("Decision", decisions)
+        if action == "approve":
+            blockers = approval_blockers(record, recommendation)
+            if blockers:
+                st.error("Approval blocked: " + ", ".join(blockers))
+        escalation_target = (
+            st.selectbox(
+                "Escalation target",
+                ["technical", "domain", "safety", "provenance"],
+            )
+            if action == "escalate"
+            else None
+        )
         confirm = st.checkbox(
-            "I confirm this approval is my explicit human decision",
-            disabled=action != "approve",
+            "I confirm this final action is my explicit human decision",
+            disabled=action not in {"approve", "reject"},
         )
         if st.button("Record human decision", type="primary"):
             try:
@@ -354,7 +367,9 @@ def run(*, configure_page: bool = True) -> None:
                     recommendation=recommendation,
                     decision_note=note,
                     quality_score=quality_score,
-                    confirm_approval=confirm,
+                    confirm_approval=confirm if action == "approve" else False,
+                    confirm_rejection=confirm if action == "reject" else False,
+                    escalation_target=escalation_target,
                 )
                 refreshed = load_version_records(
                     version,

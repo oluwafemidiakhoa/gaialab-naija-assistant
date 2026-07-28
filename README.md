@@ -70,7 +70,8 @@ integrated local dashboard with:
 streamlit run app/Home.py
 ```
 
-The v0.6 release contains 200 synthetic draft records. They are **not**
+The local v0.6 governed dataset version contains 200 synthetic draft records.
+It is not a published release. These records are **not**
 training-eligible or culturally validated until the required Nigerian human
 review is documented. See [the system overview](docs/architecture/system_overview.md)
 and [release process](docs/architecture/release_process.md).
@@ -88,10 +89,16 @@ python scripts/review_automation.py build-queue --version v0.6
 python scripts/review_automation.py analyze --version v0.6
 python scripts/review_automation.py daily-pack --version v0.6 --limit 20
 python scripts/review_automation.py refresh --version v0.6
+python scripts/review_automation.py publication-readiness --version v0.6
+python scripts/review_automation.py release-status --version v0.7
 python -m streamlit run app/Home.py
 ```
 
 The default analyzer is deterministic and offline; no API key is required.
+Use **Unified Review** for a guided five-record pilot with deterministic
+**Review Next** navigation. Local version folders never imply that a dataset
+was uploaded or published: v0.6 remains under review, and v0.7 has not been
+created.
 See [the complete AI-assisted review workflow](docs/AI_ASSISTED_REVIEW.md).
 
 ## v0.3 Training Pipeline

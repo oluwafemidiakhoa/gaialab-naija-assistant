@@ -19,6 +19,10 @@ from src.review_automation.config import (  # noqa: E402
 )
 from src.review_automation.queue import QueueFilters, build_queue  # noqa: E402
 from src.review_automation.refresh import refresh_review_outputs  # noqa: E402
+from src.review_automation.release_state import (  # noqa: E402
+    publication_readiness,
+    release_status,
+)
 from src.review_automation.service import (  # noqa: E402
     ReviewAutomationError,
     analyze_records,
@@ -50,6 +54,7 @@ def parser() -> argparse.ArgumentParser:
     queue.add_argument("--category", action="append", default=[])
     queue.add_argument("--risk-level", action="append", default=[])
     queue.add_argument("--review-status", action="append", default=[])
+    queue.add_argument("--recommendation", action="append", default=[])
     queue.add_argument("--minimum-quality-score", type=int, default=0)
     queue.add_argument("--maximum-quality-score", type=int, default=100)
     queue.add_argument(
@@ -98,6 +103,32 @@ def parser() -> argparse.ArgumentParser:
     refresh.add_argument(
         "--output-dir", type=Path, default=Path("evaluation/review_refresh")
     )
+
+    readiness = commands.add_parser("publication-readiness")
+    _common(readiness)
+    readiness.add_argument(
+        "--candidate-root",
+        type=Path,
+        default=Path("data/release_candidates"),
+    )
+    readiness.add_argument(
+        "--publication-registry",
+        type=Path,
+        default=Path("data/governance/publication_events.jsonl"),
+    )
+
+    status = commands.add_parser("release-status")
+    _common(status)
+    status.add_argument(
+        "--candidate-root",
+        type=Path,
+        default=Path("data/release_candidates"),
+    )
+    status.add_argument(
+        "--publication-registry",
+        type=Path,
+        default=Path("data/governance/publication_events.jsonl"),
+    )
     return root
 
 
@@ -112,6 +143,20 @@ def _optional_bool(value: str, positive: str, negative: str) -> bool | None:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command in {"publication-readiness", "release-status"}:
+            common = {
+                "registry_dir": args.registry,
+                "releases_dir": args.releases,
+                "candidate_root": args.candidate_root,
+                "publication_registry": args.publication_registry,
+            }
+            result = (
+                publication_readiness(args.version, **common)
+                if args.command == "publication-readiness"
+                else release_status(args.version, **common)
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+            return 0
         config = load_review_config(args.config)
         records = load_version_records(
             args.version,
@@ -126,6 +171,7 @@ def main(argv: list[str] | None = None) -> int:
                 category=tuple(args.category),
                 risk_level=tuple(args.risk_level),
                 review_status=tuple(args.review_status),
+                recommendation=tuple(args.recommendation),
                 minimum_quality_score=args.minimum_quality_score,
                 maximum_quality_score=args.maximum_quality_score,
                 domain_review_required=_optional_bool(

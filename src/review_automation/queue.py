@@ -20,6 +20,7 @@ class QueueFilters:
     category: tuple[str, ...] = ()
     risk_level: tuple[str, ...] = ()
     review_status: tuple[str, ...] = ()
+    recommendation: tuple[str, ...] = ()
     minimum_quality_score: int = 0
     maximum_quality_score: int = 100
     domain_review_required: bool | None = None
@@ -207,6 +208,11 @@ def build_queue(
         if (
             selected_filters.review_status
             and item.review_status not in selected_filters.review_status
+        ):
+            continue
+        if (
+            selected_filters.recommendation
+            and item.recommendation not in selected_filters.recommendation
         ):
             continue
         if not (

@@ -17,6 +17,7 @@ Use the pages in the sidebar:
 
 - **Dataset Review** for append-only human decisions and revisions
 - **AI-Assisted Review** for advisory prioritization and explicit human actions
+- **Unified Review** for guided Review Next and controlled pilot sessions
 - **Release Verification** and **Model Verification** for public certificates
 - **Release Scorecard** and **Benchmark Dashboard** for reproducible reports
 - **Dataset Explorer** for sanitized public metadata

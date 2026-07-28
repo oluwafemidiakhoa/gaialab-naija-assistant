@@ -43,3 +43,18 @@ existing official status transitions to `needs_revision`. This preserves the
 repository's governed status schema. Approval still requires the existing
 technical and, where applicable, domain-review transitions plus an explicit
 confirmation checkbox. Release creation and publication remain separate.
+
+## Guided review and release state
+
+`src.review_automation.guided` keeps pilot navigation separate from official
+review state. **Review Next** selects the first unprocessed record in the
+already deterministic queue. A skip changes only session navigation. A
+successful human action is persisted through the existing revision or
+transition service before navigation advances.
+
+`src.review_automation.release_state` is read-only. A registry snapshot,
+version directory, immutable local package, or name such as `v0.7-rc1` never
+means published. The states `verified`, `approved_for_publication`, and
+`published` require their corresponding explicit publication-registry events.
+Publication readiness does not create a candidate, upload data, publish a
+version, or invoke Git.

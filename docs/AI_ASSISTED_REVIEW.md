@@ -251,6 +251,30 @@ Open **AI-Assisted Review** in the sidebar. The page provides:
 - explicit role-aware human controls; and
 - completion and domain-review backlog reporting.
 
+### Unified Review and Review Next
+
+Open **Unified Review** to navigate and decide on one page. Configure dataset
+version, category, risk, status, recommendation, domain-review requirement,
+training eligibility, pilot limit, reviewer ID, and reviewer role. Finalized
+records remain excluded unless explicitly included.
+
+**Review Next** loads the highest-priority unprocessed item in the active
+deterministic queue. After a successful action, the system persists the
+governed review or linked revision, appends the separate human audit, refreshes
+downstream reports, and advances. **Skip** advances without changing status.
+
+Pilot mode defaults to five records and reports completed, remaining, approved,
+revision-requested, rejected, escalated, skipped, newly eligible, and domain
+backlog counts. It never reviews the rest of the queue automatically.
+
+Approval and rejection require confirmation. Rejection, escalation, and
+revision actions require a note. Escalation also requires a target:
+`technical`, `domain`, `safety`, or `provenance`. Approval displays exact
+technical, domain, provenance, licence, and unresolved-safety blockers.
+Accepting or editing a suggestion creates a linked draft revision; the audited
+recommendation preserves the original suggestion and the registry event
+preserves the final human-edited content.
+
 If a selected record has no stored recommendation, **Generate local advisory
 analysis** stores a local recommendation and automated audit event without
 changing review status.
@@ -303,6 +327,40 @@ enabling external analysis in configuration. The adapter:
 
 Externally generated recommendations are clearly labelled. They remain advisory
 and pass through the same human gates.
+
+## Release state and publication readiness
+
+Dataset release state progresses only with explicit evidence:
+
+```text
+local_draft / under_review
+  -> release_candidate
+  -> verified
+  -> approved_for_publication
+  -> published
+```
+
+A folder, version string, or local name such as `v0.7-rc1` does not establish
+publication. Verification, publication approval, and publication require
+explicit registry events.
+
+Read-only checks:
+
+```bash
+python scripts/review_automation.py publication-readiness --version v0.6
+python scripts/review_automation.py release-status --version v0.7
+```
+
+Publication readiness reports review completion, approved and rejected counts,
+revisions, technical/domain backlogs, provenance coverage, critical findings,
+eligibility, release-candidate existence, verification, publication approval,
+publication status, and blocking reasons. It performs no upload or Git action.
+
+Currently, v0.6 is local and under review; it has not been uploaded or
+published. v0.7 has not been built and must remain `not_created`. The safe path
+is human review, resolution and eligibility refresh, separately authorized
+candidate creation, verification, explicit publication approval, and only then
+separately authorized publication.
 
 ## Security and privacy
 

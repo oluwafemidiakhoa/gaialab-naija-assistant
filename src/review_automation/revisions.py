@@ -17,6 +17,7 @@ from src.review_automation.audit import (
     human_event,
 )
 from src.review_automation.models import AdvisoryRecommendation
+from src.review_automation.guided import approval_blockers
 from src.review_workflow import REVIEWER_ROLES, create_revision, transition_review
 
 
@@ -125,6 +126,8 @@ def apply_human_decision(
     decision_note: str = "",
     quality_score: int | None = None,
     confirm_approval: bool = False,
+    confirm_rejection: bool = False,
+    escalation_target: str | None = None,
     now: Callable[[], str] = utc_now,
 ) -> dict:
     """Apply an explicit human decision through the existing governed workflow."""
@@ -138,11 +141,30 @@ def apply_human_decision(
     )
     if action == "approve" and not confirm_approval:
         raise DatasetManagementError("approval requires explicit confirmation")
+    if action == "reject" and not confirm_rejection:
+        raise DatasetManagementError("rejection requires explicit confirmation")
+    if action == "escalate" and escalation_target not in {
+        "technical", "domain", "safety", "provenance"
+    }:
+        raise DatasetManagementError(
+            "escalation target must be technical, domain, safety, or provenance"
+        )
     current = _current_record(registry_dir, version, record_id)
     _validate_recommendation(recommendation, current, version)
     _require_audited_recommendation(audit_root, recommendation)
+    if action == "approve":
+        blockers = approval_blockers(current, recommendation)
+        if blockers:
+            raise DatasetManagementError(
+                "approval blocked: " + ", ".join(blockers)
+            )
     timestamp = now()
     new_status = DECISION_TRANSITIONS[action]
+    stored_note = (
+        f"[escalation_target:{escalation_target}] {decision_note.strip()}"
+        if action == "escalate"
+        else decision_note
+    )
     event = transition_review(
         registry_dir,
         version,
@@ -151,7 +173,7 @@ def apply_human_decision(
         reviewer_identifier,
         reviewer_role,
         quality_score=quality_score,
-        review_notes=decision_note,
+        review_notes=stored_note,
         correction_required=action in {"request_revision", "escalate"},
         now=lambda: timestamp,
     )
@@ -163,7 +185,7 @@ def apply_human_decision(
         reviewer_identifier=reviewer_identifier,
         reviewer_role=reviewer_role,
         action=action,
-        decision_note=decision_note,
+        decision_note=stored_note,
         prior_status=event.previous_status,
         new_status=event.new_status,
         related_recommendation_id=recommendation.recommendation_hash,
@@ -176,6 +198,7 @@ def apply_human_decision(
         "new_status": event.new_status,
         "review_event_sha256": event.event_sha256,
         "human_audit_sha256": audit.event_sha256,
+        "escalation_target": escalation_target,
     }
 
 
