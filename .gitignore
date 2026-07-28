@@ -26,3 +26,8 @@ wandb/
 models/
 # Generated benchmark outputs
 evaluation/results/
+.venv/
+.venv311/
+venv/
+__pycache__/
+*.pyc
