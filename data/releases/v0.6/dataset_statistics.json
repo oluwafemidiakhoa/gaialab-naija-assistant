@@ -1,0 +1,26 @@
+{
+  "category_counts": {
+    "agriculture": 20,
+    "banking": 20,
+    "business_writing": 20,
+    "education": 20,
+    "government_services": 20,
+    "healthcare": 20,
+    "nigerian_pidgin": 20,
+    "small_business": 20,
+    "technology_support": 20,
+    "travel": 20
+  },
+  "mean_quality_score": null,
+  "record_count": 200,
+  "review_status_counts": {
+    "draft": 200
+  },
+  "reviewed_records": 0,
+  "risk_level_counts": {
+    "high": 60,
+    "low": 70,
+    "medium": 70
+  },
+  "unique_example_hashes": 200
+}

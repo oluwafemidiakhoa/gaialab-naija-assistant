@@ -42,6 +42,19 @@ tests/        Automated tests
 training/     Training configurations
 ```
 
+## Dataset Management
+
+The local dataset platform provides immutable version snapshots, append-only
+human review, per-example SHA-256 hashes, semantic-duplicate reports, automatic
+statistics, CSV/JSONL releases, and cross-model benchmark summaries.
+
+See [docs/dataset_management_platform.md](docs/dataset_management_platform.md)
+for the reproducible workflow. Launch the reviewer with:
+
+```bash
+streamlit run app/dataset_review.py
+```
+
 ## v0.3 Training Pipeline
 
 1. Dataset collection

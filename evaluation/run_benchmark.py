@@ -9,7 +9,6 @@ import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
-from peft import PeftConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 DEFAULT_BENCHMARK = Path("evaluation/gaia_benchmark_v0.1.jsonl")
@@ -135,6 +134,13 @@ def build_prompt(record: dict[str, Any], tokenizer: Any) -> str:
 
 def load_model(model_id: str):
     import torch
+    try:
+        from peft import PeftConfig, PeftModel
+    except ImportError as exc:
+        raise BenchmarkError(
+            "Model execution requires the optional 'peft' dependency. "
+            "Install the repository requirements before running a benchmark."
+        ) from exc
 
     try:
         peft_config = PeftConfig.from_pretrained(model_id)
