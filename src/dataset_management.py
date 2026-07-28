@@ -15,7 +15,16 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-REVIEW_STATUSES = {"draft", "approved", "rejected"}
+REVIEW_STATUSES = {
+    "draft",
+    "automated_reviewed",
+    "needs_revision",
+    "technical_reviewed",
+    "domain_reviewed",
+    "approved",
+    "rejected",
+    "superseded",
+}
 RISK_LEVELS = {"low", "medium", "high"}
 METADATA_FIELDS = (
     "dataset_version",

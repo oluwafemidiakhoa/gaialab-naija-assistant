@@ -1,0 +1,401 @@
+{
+  "counts": {
+    "accepted": 0,
+    "duplicate": 0,
+    "rejected": 0,
+    "unresolved": 97
+  },
+  "imported_versions": [],
+  "issues": [
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-013"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-013"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-012"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-005"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-010"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-013"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-013"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-001"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-professional_boundaries-011"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-007"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-009"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-003"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-nigerian_english-006"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-customer_service-008"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v04-safety_scams-004"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v05-business-002"
+    },
+    {
+      "issue": "approval_or_evidence_incomplete",
+      "record_id": "v05-pidgin-002"
+    }
+  ],
+  "original_files_modified": false,
+  "status": "completed"
+}

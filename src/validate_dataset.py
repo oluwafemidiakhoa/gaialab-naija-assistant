@@ -20,6 +20,7 @@ REQUIRED_FIELDS = (
     "source",
     "license",
 )
+CHAT_REQUIRED_FIELDS = ("id", "messages", "category", "risk_level", "source", "license")
 SHORT_OUTPUT_WORDS = 3
 
 
@@ -78,22 +79,49 @@ def validate_records(
 
     for line_number, record in enumerate(records, start=1):
         report.total_read += 1
-        missing = [field for field in REQUIRED_FIELDS if field not in record]
+        chat_schema = "messages" in record
+        required_fields = CHAT_REQUIRED_FIELDS if chat_schema else REQUIRED_FIELDS
+        missing = [field for field in required_fields if field not in record]
         if missing:
             raise DatasetValidationError(
                 f"Record {line_number}: missing required field(s): {', '.join(missing)}."
             )
 
-        for field_name in REQUIRED_FIELDS:
-            if not isinstance(record[field_name], str):
+        for field_name in required_fields:
+            if field_name != "messages" and not isinstance(record[field_name], str):
                 raise DatasetValidationError(
                     f"Record {line_number}: '{field_name}' must be a string."
                 )
 
-        for field_name in ("instruction", "output", "source", "license"):
+        critical_fields = (
+            ("id", "category", "risk_level", "source", "license")
+            if chat_schema else ("instruction", "output", "source", "license")
+        )
+        for field_name in critical_fields:
             if not record[field_name].strip():
                 raise DatasetValidationError(
                     f"Record {line_number}: '{field_name}' must not be empty."
+                )
+
+        if chat_schema:
+            messages = record["messages"]
+            if not isinstance(messages, list) or len(messages) != 3:
+                raise DatasetValidationError(
+                    f"Record {line_number}: 'messages' must contain system, user, assistant."
+                )
+            for message, role in zip(messages, ("system", "user", "assistant")):
+                if (
+                    not isinstance(message, dict)
+                    or message.get("role") != role
+                    or not isinstance(message.get("content"), str)
+                    or not message["content"].strip()
+                ):
+                    raise DatasetValidationError(
+                        f"Record {line_number}: invalid or empty '{role}' message."
+                    )
+            if record["risk_level"] not in {"low", "medium", "high"}:
+                raise DatasetValidationError(
+                    f"Record {line_number}: invalid risk_level."
                 )
 
         canonical = json.dumps(record, ensure_ascii=False, sort_keys=True)
@@ -102,15 +130,32 @@ def validate_records(
             continue
         seen.add(canonical)
 
-        if len(record["output"].split()) < SHORT_OUTPUT_WORDS:
+        output = (
+            record["messages"][2]["content"] if chat_schema else record["output"]
+        )
+        if len(output.split()) < SHORT_OUTPUT_WORDS:
             report.warnings.append(
                 f"Record {line_number}: output is unusually short "
                 f"(< {SHORT_OUTPUT_WORDS} words)."
             )
 
-        clean = {field: record[field].strip() for field in REQUIRED_FIELDS}
+        if chat_schema:
+            clean = dict(record)
+            clean["id"] = record["id"].strip()
+            clean["category"] = record["category"].strip()
+            clean["risk_level"] = record["risk_level"].strip()
+            clean["source"] = record["source"].strip()
+            clean["license"] = record["license"].strip()
+            language = (
+                record.get("language")
+                or ("Nigerian Pidgin" if clean["category"] == "nigerian_pidgin"
+                    else "Nigerian English")
+            )
+        else:
+            clean = {field: record[field].strip() for field in REQUIRED_FIELDS}
+            language = clean["language"]
         validated.append(clean)
-        report.by_language[clean["language"]] += 1
+        report.by_language[language] += 1
         report.by_category[clean["category"]] += 1
 
     if not validated:

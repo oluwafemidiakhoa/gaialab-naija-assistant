@@ -73,3 +73,32 @@ def test_validate_and_split_writes_jsonl(tmp_path):
     assert report.valid_records == 5
     assert len((output_dir / "train.jsonl").read_text().splitlines()) == 4
     assert len((output_dir / "validation.jsonl").read_text().splitlines()) == 1
+
+
+def test_chat_schema_v06_compatibility():
+    value = {
+        "id": "v06-test-001", "category": "banking", "risk_level": "high",
+        "source": "synthetic", "license": "CC0-1.0",
+        "messages": [
+            {"role": "system", "content": "Be safe."},
+            {"role": "user", "content": "I noticed an unknown debit."},
+            {"role": "assistant", "content": "Contact your bank through an official channel."},
+        ],
+    }
+    records, report = validate_records([value])
+    assert records[0]["id"] == "v06-test-001"
+    assert report.by_language == {"Nigerian English": 1}
+
+
+def test_chat_schema_rejects_empty_user():
+    value = {
+        "id": "v06-test-001", "category": "banking", "risk_level": "high",
+        "source": "synthetic", "license": "CC0-1.0",
+        "messages": [
+            {"role": "system", "content": "Be safe."},
+            {"role": "user", "content": ""},
+            {"role": "assistant", "content": "Contact your bank."},
+        ],
+    }
+    with pytest.raises(DatasetValidationError, match="user"):
+        validate_records([value])

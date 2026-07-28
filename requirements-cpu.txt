@@ -8,3 +8,10 @@ huggingface_hub==0.32.4
 sentencepiece==0.2.0
 protobuf==5.29.4
 numpy==1.26.4
+datasets>=3.2,<5
+trl>=0.15,<1
+gradio>=5.12,<7
+streamlit>=1.41,<2
+PyYAML>=6.0,<7
+tensorboard>=2.16,<3
+pytest>=8.0,<10

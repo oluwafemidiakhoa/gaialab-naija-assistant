@@ -1,0 +1,14 @@
+{
+  "average_score": 94.61,
+  "critical_findings": 9,
+  "human_approval_assigned": false,
+  "maximum_score": 100,
+  "minimum_score": 74,
+  "recommended_actions": {
+    "approve_candidate": 52,
+    "human_review": 139,
+    "reject_candidate": 9
+  },
+  "record_count": 200,
+  "version": "v0.6"
+}

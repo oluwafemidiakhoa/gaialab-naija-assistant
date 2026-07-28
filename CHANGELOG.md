@@ -1,5 +1,17 @@
 # GaiaLab Naija Assistant Changelog
 
+## Unreleased
+
+- Added deterministic, explainable advisory quality intelligence
+- Added role-aware human review states, immutable approvals, and linked revisions
+- Added training eligibility enforcement and deterministic leakage-safe splits
+- Added public release scorecards and an integrated Streamlit governance platform
+- Added write-once training-run, artifact, and model-release registries
+- Added sanitized model verification certificates
+- Added comparable cross-version benchmark reports and leakage detection
+- Added privacy-scanned, offline-only Hugging Face dataset exports
+- Added CI verification and end-to-end architecture documentation
+
 ## v0.5
 
 - Added a reproducible CSV-to-JSONL workflow

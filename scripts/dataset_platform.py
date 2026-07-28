@@ -18,6 +18,11 @@ from src.dataset_management import (
     publish_version,
     semantic_duplicates,
 )
+from src.release_verification import (
+    ReleaseVerificationError,
+    certificate_json,
+    verify_release,
+)
 
 
 DEFAULT_REGISTRY = Path("data/registry")
@@ -37,6 +42,12 @@ def parser() -> argparse.ArgumentParser:
     publish = commands.add_parser("publish")
     publish.add_argument("--version", required=True)
     publish.add_argument("--output-dir", type=Path, default=DEFAULT_RELEASES)
+    verify = commands.add_parser("verify")
+    verify.add_argument("--version")
+    verify.add_argument("--record-id")
+    verify.add_argument("--record-sha256")
+    verify.add_argument("--manifest-sha256")
+    verify.add_argument("--releases-dir", type=Path, default=DEFAULT_RELEASES)
     return root
 
 
@@ -52,7 +63,19 @@ def main() -> int:
         elif args.command == "publish":
             outputs = publish_version(args.registry, args.version, args.output_dir)
             print("\n".join(f"{name}: {path}" for name, path in outputs.items()))
-    except (DatasetManagementError, OSError) as exc:
+        elif args.command == "verify":
+            certificate = verify_release(
+                args.releases_dir,
+                version=args.version,
+                record_id=args.record_id,
+                record_sha256=args.record_sha256,
+                manifest_sha256=args.manifest_sha256,
+            )
+            print(certificate_json(certificate), end="")
+            return 0 if certificate["integrity_status"] in {
+                "verified", "superseded"
+            } else 1
+    except (DatasetManagementError, ReleaseVerificationError, OSError) as exc:
         print(f"Dataset platform failed: {exc}")
         return 1
     return 0

@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2,<3"
+      - run: pip install -r requirements-cpu.txt
+      - run: python -m pytest
+      - run: python -m src.validate_dataset data/gaialab_naija_v0.1_with_ids.jsonl --output-dir "${RUNNER_TEMP}/v01-validation"
+      - run: python -m src.validate_dataset data/releases/v0.6/v0.6.jsonl --output-dir "${RUNNER_TEMP}/v06-validation"
+      - run: python scripts/dataset_platform.py verify --version v0.6
+      - run: python -m pytest tests/test_dataset_verify_app.py tests/test_streamlit_platform.py
+      - run: python scripts/build_training_release.py --source-version v0.6 --target-version ci-rc --dry-run
+      - run: python scripts/export_huggingface_dataset.py --version v0.6 --output-dir "${RUNNER_TEMP}/gaialab-hf"
+      - name: Confirm immutable inputs were not modified
+        run: git diff --exit-code -- data/releases data/registry

@@ -55,6 +55,26 @@ for the reproducible workflow. Launch the reviewer with:
 streamlit run app/dataset_review.py
 ```
 
+Public, privacy-preserving release verification is documented in
+[docs/public_release_verification.md](docs/public_release_verification.md).
+
+## Governance platform
+
+The production governance layer adds deterministic advisory quality assessment,
+role-aware append-only human review, training eligibility, release scorecards,
+write-once model/run/artifact registration, cross-version benchmark reports,
+offline Hugging Face export, and public dataset/model verification. Start the
+integrated local dashboard with:
+
+```bash
+streamlit run app/Home.py
+```
+
+The v0.6 release contains 200 synthetic draft records. They are **not**
+training-eligible or culturally validated until the required Nigerian human
+review is documented. See [the system overview](docs/architecture/system_overview.md)
+and [release process](docs/architecture/release_process.md).
+
 ## v0.3 Training Pipeline
 
 1. Dataset collection

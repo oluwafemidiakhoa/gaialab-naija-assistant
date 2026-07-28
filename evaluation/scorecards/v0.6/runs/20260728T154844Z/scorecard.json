@@ -1,0 +1,60 @@
+{
+  "approved_count": 0,
+  "average_quality_score": 94.61,
+  "benchmark_coverage": 0.0,
+  "category_distribution": {
+    "agriculture": 20,
+    "banking": 20,
+    "business_writing": 20,
+    "education": 20,
+    "government_services": 20,
+    "healthcare": 20,
+    "nigerian_pidgin": 20,
+    "small_business": 20,
+    "technology_support": 20,
+    "travel": 20
+  },
+  "domain_review_completion_rate": 0.0,
+  "draft_count": 200,
+  "duplicate_count": 0,
+  "eligible_training_count": 0,
+  "excluded_count": 200,
+  "generated_at": "2026-07-28T15:48:44+00:00",
+  "human_review_completion_rate": 0.0,
+  "integrity_pass_rate": 100.0,
+  "language_distribution": {
+    "Nigerian English": 180,
+    "Nigerian Pidgin": 20
+  },
+  "license_coverage": 100.0,
+  "license_distribution": {
+    "CC0-1.0": 200
+  },
+  "manifest_sha256": "d102e60c43e120925eb03703b6a3ff873c4072c85f5beec2a2bacca6cc74689f",
+  "maximum_quality_score": 100,
+  "median_quality_score": 96.0,
+  "minimum_quality_score": 74,
+  "provenance_coverage": 100.0,
+  "quality_distribution": {
+    "100-100": 1,
+    "70-79": 1,
+    "80-89": 22,
+    "90-99": 176
+  },
+  "record_count": 200,
+  "rejected_count": 0,
+  "release_status": "immutable_release",
+  "release_version": "v0.6",
+  "risk_distribution": {
+    "high": 60,
+    "low": 70,
+    "medium": 70
+  },
+  "scorecard_sha256": "3e3d58a64efb5e3fe6e5c5f619a1de85aa87de586151f8366cca4baf6ab1b714",
+  "source_distribution": {
+    "synthetic": 200
+  },
+  "superseded_count": 0,
+  "technical_review_completion_rate": 0.0,
+  "unresolved_critical_findings": 9
+}

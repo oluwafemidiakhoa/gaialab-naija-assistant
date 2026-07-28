@@ -15,9 +15,9 @@
   "dataset_version": "v0.6",
   "license": "CC0-1.0",
   "outputs": {
-    "all": "data\\v0.6\\generated\\v0.6_all.jsonl",
-    "training": "data\\v0.6\\generated\\v0.6_training.jsonl",
-    "validation": "data\\v0.6\\generated\\v0.6_validation.jsonl"
+    "all": "data/v0.6/generated/v0.6_all.jsonl",
+    "training": "data/v0.6/generated/v0.6_training.jsonl",
+    "validation": "data/v0.6/generated/v0.6_validation.jsonl"
   },
   "record_count": 200,
   "risk_level_counts": {
@@ -27,54 +27,54 @@
   },
   "source_files": [
     {
-      "path": "data\\v0.6\\examples\\banking.csv",
+      "path": "data/v0.6/examples/banking.csv",
       "record_count": 20,
-      "sha256": "36779e894b3d4e7cd93437dc6f201e6156953cfaf9112c1c3ff84a8c017bf91b"
+      "sha256": "db5d304d1f8faaba9693ad73fd09ce80527742ea0de0568c28db9df6344bf637"
     },
     {
-      "path": "data\\v0.6\\examples\\healthcare.csv",
+      "path": "data/v0.6/examples/healthcare.csv",
       "record_count": 20,
-      "sha256": "7e811454b05735ea6f8ade29d385929c4a793c0a8b91de16dce8e61a6341531c"
+      "sha256": "31ea639bb168a93defebd6950e894f2954d5a8bc3bf30fdd361ae9beaf10f616"
     },
     {
-      "path": "data\\v0.6\\examples\\government_services.csv",
+      "path": "data/v0.6/examples/government_services.csv",
       "record_count": 20,
-      "sha256": "9fab2f7ca9109b36820461e4da0f52265eaec688acb5b39541a917dbeb816629"
+      "sha256": "1b427c1552adda59e852a0f7a6d1cde3e63ff18d622367da502e336c96838a39"
     },
     {
-      "path": "data\\v0.6\\examples\\education.csv",
+      "path": "data/v0.6/examples/education.csv",
       "record_count": 20,
-      "sha256": "43e6cf481390b422ec0344dbb207b018e116b74bffadb6d6860ce3abdbb411c8"
+      "sha256": "198764ed1ee4d15dd8c4486724e992a2ce24dbcfb8ec22be8a9943253a012373"
     },
     {
-      "path": "data\\v0.6\\examples\\agriculture.csv",
+      "path": "data/v0.6/examples/agriculture.csv",
       "record_count": 20,
-      "sha256": "ea85f96789d9c716a1c9c0b9889beb269e07db9016a96ed213f34c1886da04cc"
+      "sha256": "f592ff5198e4344eafd0e2e3086610a3a780666a9c97ee438b327bb06d236a61"
     },
     {
-      "path": "data\\v0.6\\examples\\travel.csv",
+      "path": "data/v0.6/examples/travel.csv",
       "record_count": 20,
-      "sha256": "61cabded1ba1f4d2e956ca77d60365695d2829c51ef66c7d386fd48ce7ee5fb7"
+      "sha256": "736e5ad92715345465a022fded4132a6776aaf64681cb984e4549104f273c5c4"
     },
     {
-      "path": "data\\v0.6\\examples\\technology_support.csv",
+      "path": "data/v0.6/examples/technology_support.csv",
       "record_count": 20,
-      "sha256": "9625dd0efedeaf65ad5eb3f604293dceff2406601c1330f1892acc3d71e482d4"
+      "sha256": "85f42175c3efa68a1de22a4c38034c0262e90ea5632d53744a9aba9cce97a832"
     },
     {
-      "path": "data\\v0.6\\examples\\small_business.csv",
+      "path": "data/v0.6/examples/small_business.csv",
       "record_count": 20,
-      "sha256": "7903858e8ea76f79a55e8716fd5df7de29e78b5517978c958bcbe3fa052496b6"
+      "sha256": "9ed697f8f508fa38c2c5c2b267c48cd2dfa860dc5485b585bcb7ef5778382241"
     },
     {
-      "path": "data\\v0.6\\examples\\nigerian_pidgin.csv",
+      "path": "data/v0.6/examples/nigerian_pidgin.csv",
       "record_count": 20,
-      "sha256": "210f2985bb2cb2f4cd5820ca4e6b7dad3daeb0e08171f8d02252add78b5fbfea"
+      "sha256": "40e5c1690cb3c445d48c6fe9ebc19fe2c3ad345a2e2764441a74846469e6e105"
     },
     {
-      "path": "data\\v0.6\\examples\\business_writing.csv",
+      "path": "data/v0.6/examples/business_writing.csv",
       "record_count": 20,
-      "sha256": "a37d73bcb2ef4be3ff74a4ebb63853e1a7d3ff50de25591142e309dd2b42df00"
+      "sha256": "1590e8dc342c1780dc0b104c5b4e331fcc09537d1f770ff2aeff7359fdc53214"
     }
   ],
   "split": {

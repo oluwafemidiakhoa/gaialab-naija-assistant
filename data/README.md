@@ -32,3 +32,8 @@ python -m src.validate_dataset data/gaialab_naija_v0.1.jsonl
 Validation creates deterministic 80/20 train and validation splits in
 `prepared_data/` by default. Generated splits are ignored by Git and must retain the
 same provenance and licence if redistributed.
+
+Immutable platform releases use the chat schema: `id`, `category`, `risk_level`,
+`messages` (exactly system, user, and assistant), `source`, and `license`, plus
+review and integrity metadata. The same validator accepts both the v0.1 legacy
+instruction schema and this v0.6 chat schema.
