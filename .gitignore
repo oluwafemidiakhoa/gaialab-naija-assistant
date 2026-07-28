@@ -26,6 +26,12 @@ wandb/
 models/
 # Generated benchmark outputs
 evaluation/results/
+# Generated AI-assisted review outputs (may include private reviewer metadata)
+evaluation/automated_reviews/
+evaluation/review_queues/
+evaluation/daily_packs/
+evaluation/review_audit/
+evaluation/review_refresh/
 .venv/
 .venv311/
 venv/

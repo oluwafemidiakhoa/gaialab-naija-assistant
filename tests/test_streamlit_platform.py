@@ -7,6 +7,7 @@ from streamlit.testing.v1 import AppTest
 @pytest.mark.parametrize("path", [
     "app/Home.py",
     "app/pages/0_Dataset_Review.py",
+    "app/pages/1_AI_Assisted_Review.py",
     "app/pages/2_Release_Scorecard.py",
     "app/pages/3_Model_Verification.py",
     "app/pages/4_Benchmark_Dashboard.py",

@@ -75,6 +75,25 @@ training-eligible or culturally validated until the required Nigerian human
 review is documented. See [the system overview](docs/architecture/system_overview.md)
 and [release process](docs/architecture/release_process.md).
 
+## AI-assisted dataset review
+
+The local-first review assistant adds deterministic quality and duplicate
+analysis, prioritized queues, non-mutating revision suggestions, separate
+automated and human audit events, daily work packs, and downstream eligibility
+refreshes. Recommendations are advisory only: approval, rejection, revision,
+escalation, and publication always require separate governed human actions.
+
+```bash
+python scripts/review_automation.py build-queue --version v0.6
+python scripts/review_automation.py analyze --version v0.6
+python scripts/review_automation.py daily-pack --version v0.6 --limit 20
+python scripts/review_automation.py refresh --version v0.6
+python -m streamlit run app/Home.py
+```
+
+The default analyzer is deterministic and offline; no API key is required.
+See [the complete AI-assisted review workflow](docs/AI_ASSISTED_REVIEW.md).
+
 ## v0.3 Training Pipeline
 
 1. Dataset collection

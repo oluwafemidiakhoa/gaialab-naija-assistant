@@ -1,0 +1,39 @@
+risk_weights:
+  low: 1
+  medium: 2
+  high: 4
+  critical: 6
+
+thresholds:
+  minimum_quality_score: 60
+  approve_candidate_score: 85
+  reject_candidate_below: 35
+  near_duplicate_threshold: 0.82
+  recommendation_confidence_threshold: 60
+
+domain_review_categories:
+  - banking
+  - healthcare
+  - government_services
+
+enhanced_safety_categories:
+  - banking
+  - healthcare
+  - government_services
+  - technology_support
+
+provider:
+  default: local
+  external_enabled: false
+  maximum_retry_count: 2
+  timeout_seconds: 30
+
+queue_ordering:
+  - risk_severity
+  - critical_findings
+  - high_findings
+  - quality_score
+  - duplicate_likelihood
+  - record_id
+
+prompt_version: gaialab-review-v1
