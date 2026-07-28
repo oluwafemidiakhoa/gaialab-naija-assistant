@@ -1,0 +1,30 @@
+{
+  "model_count": 3,
+  "models": {
+    "Qwen/Qwen2.5-0.5B-Instruct": {
+      "human_reviewed_responses": 0,
+      "mean_human_scores": {},
+      "responses": 30,
+      "source_files": [
+        "evaluation/results/base_model.jsonl"
+      ]
+    },
+    "mgbam/gaialab-naija-adapter-v0.1": {
+      "human_reviewed_responses": 0,
+      "mean_human_scores": {},
+      "responses": 30,
+      "source_files": [
+        "evaluation/results/adapter_v0.1.jsonl"
+      ]
+    },
+    "mgbam/gaialab-naija-adapter-v0.2": {
+      "human_reviewed_responses": 0,
+      "mean_human_scores": {},
+      "responses": 30,
+      "source_files": [
+        "evaluation/results/adapter_v0.2.jsonl"
+      ]
+    }
+  },
+  "scoring_policy": "Only numeric scores already entered by human reviewers are aggregated; missing scores remain missing."
+}

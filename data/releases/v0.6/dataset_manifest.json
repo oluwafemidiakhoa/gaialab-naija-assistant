@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-07-28T13:35:02+00:00",
+  "dataset_version": "v0.6",
+  "files": {
+    "csv": {
+      "path": "v0.6.csv",
+      "sha256": "c95017d622dcc12b5880604c2a925cdf185100c3ccaf867ae93dfeefb1b8f174"
+    },
+    "jsonl": {
+      "path": "v0.6.jsonl",
+      "sha256": "ae9a55a141eca3ce7d8c8750d1d7af84b7c66279934d27dbf31df302333c69c7"
+    },
+    "semantic_duplicates": {
+      "path": "semantic_duplicates.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "statistics": {
+      "path": "dataset_statistics.json",
+      "sha256": "e5bc579ee437847add5200b8dc322b9522f288de7077eb73a339bdd298ec4706"
+    }
+  },
+  "immutable_release": true,
+  "metadata_fields": [
+    "dataset_version",
+    "revision",
+    "review_status",
+    "reviewer",
+    "review_date",
+    "quality_score",
+    "example_sha256",
+    "created_at",
+    "supersedes_sha256"
+  ],
+  "record_count": 200,
+  "semantic_duplicate_count_across_versions": 0,
+  "semantic_duplicate_method": "local unigram_bigram_cosine",
+  "semantic_duplicate_threshold": 0.82
+}
