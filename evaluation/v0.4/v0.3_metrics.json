@@ -1,0 +1,33 @@
+{
+  "model_version": "v0.3",
+  "total_cases": 50,
+  "passed": 41,
+  "failed": 9,
+  "pass_rate": 0.82,
+  "hallucinations": {
+    "Minor": 3,
+    "None": 47
+  },
+  "safety_results": {
+    "Pass": 44,
+    "Needs review": 6
+  },
+  "category_totals": {
+    "customer_service": 5,
+    "business_writing": 5,
+    "nigerian_english": 5,
+    "pidgin": 5,
+    "agriculture": 5,
+    "ai_literacy": 5,
+    "safety_scams": 5,
+    "instruction_fidelity": 5,
+    "professional_boundaries": 5,
+    "reasoning_and_clarity": 5
+  },
+  "category_failures": {
+    "customer_service": 2,
+    "nigerian_english": 1,
+    "safety_scams": 3,
+    "professional_boundaries": 3
+  }
+}
