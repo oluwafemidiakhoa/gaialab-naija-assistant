@@ -10,12 +10,14 @@ from src.legacy_provenance import (
     LEGACY_FILES,
     PROJECT_ROOT,
     REVIEW_FIELDS,
+    VERSION_COMMITS,
     audit_all,
     audit_version,
     canonical_original_sha256,
     import_reviewed,
     write_review_sheets,
 )
+from src import legacy_provenance
 
 
 def legacy_record(record_id: str = "v04-test-001") -> dict:
@@ -113,7 +115,15 @@ def test_audit_tracks_exact_line_and_git_evidence() -> None:
     assert "data/raw/" in references
     assert ":2#" in references
     assert "data/v0.4/dataset_manifest.json:2" in references
-    assert "git:c3b88995b68bf32d2afd07022490a1dce3d1b2aa" in references
+    assert f"git:{VERSION_COMMITS['v0.4']}" in references
+
+
+def test_missing_git_history_is_not_treated_as_evidence(monkeypatch) -> None:
+    def unavailable(*args, **kwargs):
+        raise FileNotFoundError("git unavailable")
+
+    monkeypatch.setattr(legacy_provenance.subprocess, "run", unavailable)
+    assert legacy_provenance._commit_subject("missing") == ""
 
 
 def test_import_rejects_missing_human_approval(tmp_path: Path) -> None:

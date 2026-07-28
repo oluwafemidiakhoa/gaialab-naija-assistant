@@ -28,9 +28,9 @@ applies.
 
 The v0.4 build is traceable to the four `data/raw/*.jsonl` files, the build script,
 manifest, and Git commit
-`c3b88995b68bf32d2afd07022490a1dce3d1b2aa`. The v0.5 manifest identifies its
+`c564287aeabbcedaef1efdf88a8b92b46d683560`. The v0.5 manifest identifies its
 v0.4 training base and two new-example inputs; commit
-`26b1dfe43cb9f4e120b3653317b2c4560021469d` preserves those files.
+`51c4aa9b5d346e4eba1c5adb5b397c241bd165a9` preserves those files.
 
 These are exact lineage references only. Neither commit message, manifest, build
 script, nor adjacent record establishes a per-record license, ownership basis, or

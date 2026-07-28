@@ -41,8 +41,8 @@ LINEAGE_FILES = {
     ),
 }
 VERSION_COMMITS = {
-    "v0.4": "c3b88995b68bf32d2afd07022490a1dce3d1b2aa",
-    "v0.5": "26b1dfe43cb9f4e120b3653317b2c4560021469d",
+    "v0.4": "c564287aeabbcedaef1efdf88a8b92b46d683560",
+    "v0.5": "51c4aa9b5d346e4eba1c5adb5b397c241bd165a9",
 }
 DOCUMENTARY_EVIDENCE = {
     "v0.4": (
@@ -153,14 +153,18 @@ def _csv_index(path: Path, evidence_path: str | None = None) -> dict[str, list[s
 
 
 def _commit_subject(commit: str) -> str:
-    result = subprocess.run(
-        ["git", "show", "-s", "--format=%s", commit],
-        cwd=PROJECT_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
+    """Return a commit subject when available; never invent missing evidence."""
+    try:
+        result = subprocess.run(
+            ["git", "show", "-s", "--format=%s", commit],
+            cwd=PROJECT_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return ""
+    return result.stdout.strip() if result.returncode == 0 else ""
 
 
 def _documentary_references(
