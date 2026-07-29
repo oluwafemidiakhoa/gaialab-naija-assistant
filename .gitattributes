@@ -1,0 +1,5 @@
+# Release hashes are byte-level integrity checks. Keep committed text artefacts
+# identical across Windows, Linux, and macOS checkouts.
+data/releases/**/*.csv text eol=lf
+data/releases/**/*.json text eol=lf
+data/releases/**/*.jsonl text eol=lf

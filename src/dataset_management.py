@@ -387,7 +387,11 @@ def publish_version(registry_dir: Path, version: str, release_dir: Path) -> dict
     temporary = Path(temp_name)
     try:
         with temporary.open("w", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=CSV_FIELDS,
+                lineterminator="\n",
+            )
             writer.writeheader()
             writer.writerows(_record_to_csv(record) for record in records)
         if csv_path.exists():

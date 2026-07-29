@@ -4,7 +4,7 @@
   "files": {
     "csv": {
       "path": "v0.6.csv",
-      "sha256": "c95017d622dcc12b5880604c2a925cdf185100c3ccaf867ae93dfeefb1b8f174"
+      "sha256": "9f0055588f9977e21d320f241876cc24be83c8590946b0f4dc767514f5354eb8"
     },
     "jsonl": {
       "path": "v0.6.jsonl",
