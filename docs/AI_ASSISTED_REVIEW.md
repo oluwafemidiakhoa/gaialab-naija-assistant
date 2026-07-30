@@ -279,6 +279,21 @@ If a selected record has no stored recommendation, **Generate local advisory
 analysis** stores a local recommendation and automated audit event without
 changing review status.
 
+### Bulk Governed Review
+
+Open **Bulk Governed Review** for a deterministic, preview-first batch of
+low-risk synthetic records. The panel lists each selected record, advisory
+recommendation, quality score, unresolved findings, review requirements,
+eligibility blockers, allow/block decision, and exact blocker reasons.
+
+Bulk execution is disabled until the local authenticated reviewer identity
+matches, write mode is explicitly enabled, and the reviewer types
+`I HAVE REVIEWED THESE RECORDS`. Each successful record receives a separate
+append-only human audit event with a shared batch operation ID. Technical
+review never performs approval, and AI recommendations never perform human
+actions. See [Bulk governed human review](bulk_governed_review.md) for CLI
+commands and the complete safeguard matrix.
+
 A typical low-risk path is:
 
 ```text

@@ -413,6 +413,7 @@ class HumanDecisionAuditEvent:
     related_recommendation_id: str
     timestamp: str
     event_sha256: str
+    batch_operation_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.event_type != "human_decision":
@@ -440,12 +441,16 @@ class HumanDecisionAuditEvent:
         _validate_sha256(self.record_sha256, "record_sha256")
         _validate_sha256(self.event_sha256, "event_sha256")
         _validate_timestamp(self.timestamp, "timestamp")
+        if self.batch_operation_id is not None:
+            _required_text(self.batch_operation_id, "batch_operation_id")
         if self.event_sha256 != self.computed_hash():
             raise ReviewAutomationModelError("event_sha256 does not match content")
 
     def payload(self) -> dict[str, Any]:
         value = asdict(self)
         value.pop("event_sha256")
+        if value["batch_operation_id"] is None:
+            value.pop("batch_operation_id")
         return value
 
     def computed_hash(self) -> str:

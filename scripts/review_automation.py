@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -13,6 +14,11 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.dataset_management import DatasetManagementError  # noqa: E402
+from src.review_automation.bulk import (  # noqa: E402
+    BULK_ACTIONS,
+    build_bulk_preview,
+    execute_bulk_review,
+)
 from src.review_automation.config import (  # noqa: E402
     ReviewAutomationConfigError,
     load_review_config,
@@ -129,6 +135,55 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("data/governance/publication_events.jsonl"),
     )
+
+    bulk = commands.add_parser("bulk-human-review")
+    _common(bulk)
+    bulk.add_argument("--category", required=True)
+    bulk.add_argument("--reviewer-id", required=True)
+    bulk.add_argument(
+        "--reviewer-role",
+        required=True,
+        choices=(
+            "reviewer",
+            "technical_reviewer",
+            "domain_reviewer",
+            "release_manager",
+        ),
+    )
+    bulk.add_argument("--action", required=True, choices=tuple(BULK_ACTIONS))
+    bulk.add_argument("--note-file", required=True, type=Path)
+    bulk.add_argument("--limit", type=int, default=20)
+    bulk.add_argument(
+        "--escalation-target",
+        choices=("technical", "domain", "safety", "provenance"),
+    )
+    mode = bulk.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview only; this is also the default when no mode is supplied.",
+    )
+    mode.add_argument(
+        "--write",
+        action="store_true",
+        help="Append allowed human actions after exact confirmation.",
+    )
+    bulk.add_argument("--confirm")
+    bulk.add_argument(
+        "--audit-dir",
+        type=Path,
+        default=Path("evaluation/review_audit"),
+    )
+    bulk.add_argument(
+        "--quality-root",
+        type=Path,
+        default=Path("evaluation/quality"),
+    )
+    bulk.add_argument(
+        "--reviews-root",
+        type=Path,
+        default=Path("evaluation/automated_reviews"),
+    )
     return root
 
 
@@ -163,10 +218,67 @@ def main(argv: list[str] | None = None) -> int:
             registry_dir=args.registry,
             releases_dir=args.releases,
         )
-        assessments = load_latest_assessments(args.version)
-        recommendations = load_latest_recommendations(args.version)
+        assessments = load_latest_assessments(
+            args.version,
+            quality_root=getattr(
+                args, "quality_root", Path("evaluation/quality")
+            ),
+        )
+        recommendations = load_latest_recommendations(
+            args.version,
+            reviews_root=getattr(
+                args,
+                "reviews_root",
+                Path("evaluation/automated_reviews"),
+            ),
+        )
         timestamp = utc_now()
-        if args.command == "build-queue":
+        if args.command == "bulk-human-review":
+            note = args.note_file.read_text(encoding="utf-8").strip()
+            preview = build_bulk_preview(
+                records,
+                args.version,
+                config,
+                category=args.category,
+                reviewer_id=args.reviewer_id,
+                reviewer_role=args.reviewer_role,
+                action=args.action,
+                decision_note=note,
+                limit=args.limit,
+                escalation_target=args.escalation_target,
+                assessments=assessments,
+                recommendations=recommendations,
+                audit_root=args.audit_dir,
+            )
+            print(
+                json.dumps(
+                    {"bulk_human_review_preview": preview.to_dict()},
+                    ensure_ascii=False,
+                    indent=2,
+                    sort_keys=True,
+                ),
+                file=sys.stderr,
+                flush=True,
+            )
+            execution = execute_bulk_review(
+                preview,
+                config,
+                registry_dir=args.registry,
+                releases_dir=args.releases,
+                audit_root=args.audit_dir,
+                assessments=assessments,
+                recommendations=recommendations,
+                confirmation=args.confirm,
+                authenticated_reviewer_id=os.getenv(
+                    "GAIALAB_AUTHENTICATED_REVIEWER_ID"
+                ),
+                dry_run=not args.write,
+            )
+            result = {
+                "preview": preview.to_dict(),
+                "execution": execution,
+            }
+        elif args.command == "build-queue":
             filters = QueueFilters(
                 category=tuple(args.category),
                 risk_level=tuple(args.risk_level),

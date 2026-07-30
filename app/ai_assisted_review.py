@@ -261,7 +261,7 @@ def run(*, configure_page: bool = True) -> None:
             "eligible": item.training_eligible,
         }
         for item in snapshot.items
-    ], width="stretch")
+    ], use_container_width=True)
     if not snapshot.items:
         st.info("No records match the queue filters.")
         return

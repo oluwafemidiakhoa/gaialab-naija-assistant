@@ -128,6 +128,7 @@ def apply_human_decision(
     confirm_approval: bool = False,
     confirm_rejection: bool = False,
     escalation_target: str | None = None,
+    batch_operation_id: str | None = None,
     now: Callable[[], str] = utc_now,
 ) -> dict:
     """Apply an explicit human decision through the existing governed workflow."""
@@ -190,6 +191,7 @@ def apply_human_decision(
         new_status=event.new_status,
         related_recommendation_id=recommendation.recommendation_hash,
         timestamp=timestamp,
+        batch_operation_id=batch_operation_id,
     )
     append_audit_event(audit_root, audit)
     return {
@@ -199,6 +201,7 @@ def apply_human_decision(
         "review_event_sha256": event.event_sha256,
         "human_audit_sha256": audit.event_sha256,
         "escalation_target": escalation_target,
+        "batch_operation_id": batch_operation_id,
     }
 
 

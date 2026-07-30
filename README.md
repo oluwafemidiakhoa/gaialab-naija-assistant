@@ -91,6 +91,10 @@ python scripts/review_automation.py daily-pack --version v0.6 --limit 20
 python scripts/review_automation.py refresh --version v0.6
 python scripts/review_automation.py publication-readiness --version v0.6
 python scripts/review_automation.py release-status --version v0.7
+python scripts/review_automation.py bulk-human-review --version v0.6 \
+  --category business_writing --reviewer-id REVIEWER_ID \
+  --reviewer-role technical_reviewer --action technical-review \
+  --note-file review_notes/business_writing_pilot.txt --limit 20 --dry-run
 python -m streamlit run app/Home.py
 ```
 
@@ -100,6 +104,8 @@ Use **Unified Review** for a guided five-record pilot with deterministic
 was uploaded or published: v0.6 remains under review, and v0.7 has not been
 created.
 See [the complete AI-assisted review workflow](docs/AI_ASSISTED_REVIEW.md).
+The preview-first batch controls are documented in
+[Bulk governed human review](docs/bulk_governed_review.md).
 
 ## v0.3 Training Pipeline
 

@@ -230,9 +230,18 @@ def run(*, configure_page: bool = True) -> None:
             st.info("Click Review Next to load the highest-priority record.")
         return
     by_id = {str(record["id"]): record for record in records}
-    if selected_id not in by_id:
-        st.session_state.unified_selected_id = None
+    selected_queue_item = next(
+        (
+            item
+            for item in snapshot.items
+            if item.record_id == selected_id
+        ),
+        None,
+    )
+    if selected_id not in by_id or selected_queue_item is None:
+        _advance(snapshot, progress)
         st.rerun()
+        return
     record = by_id[selected_id]
     recommendation = current_recommendation(recommendations, record)
     if recommendation is None:
@@ -260,10 +269,7 @@ def run(*, configure_page: bool = True) -> None:
             "license": record["license"],
             "category": record["category"],
             "risk_level": record["risk_level"],
-            "training_eligible": next(
-                item.training_eligible for item in snapshot.items
-                if item.record_id == selected_id
-            ),
+            "training_eligible": selected_queue_item.training_eligible,
         })
     messages = {
         message["role"]: message["content"] for message in record["messages"]

@@ -90,19 +90,22 @@ def human_event(
     new_status: str,
     related_recommendation_id: str,
     timestamp: str,
+    batch_operation_id: str | None = None,
 ) -> HumanDecisionAuditEvent:
     """Create a separately typed event for one explicit human action."""
+    event_identity: tuple[object, ...] = (
+        dataset_version,
+        record_id,
+        record_revision,
+        record_sha256,
+        reviewer_identifier,
+        action,
+        timestamp,
+    )
+    if batch_operation_id is not None:
+        event_identity = (*event_identity, batch_operation_id)
     payload = {
-        "event_id": _event_id(
-            "human",
-            dataset_version,
-            record_id,
-            record_revision,
-            record_sha256,
-            reviewer_identifier,
-            action,
-            timestamp,
-        ),
+        "event_id": _event_id("human", *event_identity),
         "dataset_version": dataset_version,
         "record_id": record_id,
         "record_revision": record_revision,
@@ -117,6 +120,8 @@ def human_event(
         "related_recommendation_id": related_recommendation_id,
         "timestamp": timestamp,
     }
+    if batch_operation_id is not None:
+        payload["batch_operation_id"] = batch_operation_id
     return HumanDecisionAuditEvent(
         **payload,
         event_sha256=canonical_sha256(payload),
@@ -144,6 +149,8 @@ def append_audit_event(
                     )
                 return False
     value = asdict(event)
+    if value.get("batch_operation_id") is None:
+        value.pop("batch_operation_id", None)
     recommendation = value.get("recommendation")
     if isinstance(recommendation, RecommendationCategory):
         value["recommendation"] = recommendation.value

@@ -9,6 +9,7 @@ from streamlit.testing.v1 import AppTest
     "app/pages/0_Dataset_Review.py",
     "app/pages/1_AI_Assisted_Review.py",
     "app/pages/1_Unified_Review.py",
+    "app/pages/2_Bulk_Governed_Review.py",
     "app/pages/2_Release_Scorecard.py",
     "app/pages/3_Model_Verification.py",
     "app/pages/4_Benchmark_Dashboard.py",
@@ -24,6 +25,22 @@ def test_integrated_page_renders(path):
 def test_windows_paths_are_pathlib_compatible():
     path = Path("data") / "releases" / "v0.6" / "dataset_manifest.json"
     assert path.parts[-2:] == ("v0.6", "dataset_manifest.json")
+
+
+def test_unified_review_recovers_from_stale_filtered_selection():
+    app = AppTest.from_file(
+        "app/pages/1_Unified_Review.py",
+        default_timeout=15,
+    )
+    app.run()
+    assert not app.exception
+
+    # This record exists, but the page's default category filter excludes it.
+    app.session_state["unified_selected_id"] = "v06-agriculture-001"
+    app.run()
+
+    assert not app.exception
+    assert app.session_state["unified_selected_id"] != "v06-agriculture-001"
 
 
 def test_pages_do_not_depend_on_app_being_a_package():
