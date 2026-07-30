@@ -119,6 +119,28 @@ The preview-first batch controls are documented in
 8. Manual response testing
 9. Model release and documentation
 
+## Governed GPU LoRA pipeline
+
+The prerelease training path validates immutable candidate manifests,
+per-record eligibility evidence, content hashes, duplicate prompts, and split
+leakage before loading a model. Normal training requires CUDA; local CPU use is
+limited to validation-only dry runs and smoke checks.
+
+```bash
+python scripts/train_governed_lora.py \
+  --config configs/training/v0.7.0-rc.3.yaml \
+  --output-dir outputs/dry-runs/v0.7.0-rc.3 \
+  --dry-run
+```
+
+The immutable `v0.7-rc1` candidate contains no eligible records. The seven
+subsequently approved records belong to the distinct `v0.7-rc3` candidate
+(five train, one validation, one held-out); they are enough for pipeline
+validation, not meaningful model-quality claims. See
+[the governed training guide](docs/TRAINING_PIPELINE.md) and the
+[Kaggle GPU notebook](notebooks/gaialab_governed_lora_kaggle.ipynb). No model
+has been trained or published by adding this pipeline.
+
 ## Training Configuration
 
 ```yaml

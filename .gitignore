@@ -22,6 +22,17 @@ wandb/
 *.tfevents.*
 *.safetensors
 *.bin
+optimizer.pt
+scheduler.pt
+trainer_state.json
+training_args.bin
+predictions.jsonl
+evaluation_summary.json
+.cache/huggingface/
+hf_cache/
+.ipynb_checkpoints/
+notebooks/tmp/
+kaggle/working/
 # Local model artifacts
 models/
 # Generated benchmark outputs
