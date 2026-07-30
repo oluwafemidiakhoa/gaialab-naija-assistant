@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.dataset_management import enrich_record, import_version, publish_version
+from src.dataset_management import import_version, publish_version
 from src.release_verification import (
     ReleaseVerificationError,
     certificate_json,
@@ -107,6 +107,22 @@ def test_manifest_sha256_verifies_release(tmp_path: Path) -> None:
     assert certificate["release_version"] == "v0.6"
     assert certificate["manifest_sha256"] == digest
     assert certificate["integrity_status"] == "verified"
+
+
+def test_published_csv_hash_is_stable_with_lf_line_endings(tmp_path: Path) -> None:
+    releases, _ = release_fixture(tmp_path)
+    release = releases / "v0.6"
+    csv_bytes = (release / "v0.6.csv").read_bytes()
+    manifest = json.loads(
+        (release / "dataset_manifest.json").read_text(encoding="utf-8")
+    )
+
+    import hashlib
+
+    assert b"\r\n" not in csv_bytes
+    assert manifest["files"]["csv"]["sha256"] == hashlib.sha256(
+        csv_bytes
+    ).hexdigest()
 
 
 def test_invalid_sha256_is_rejected(tmp_path: Path) -> None:

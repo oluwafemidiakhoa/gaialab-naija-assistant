@@ -11,5 +11,8 @@ immutable: editing creates a new draft revision linked by `parent_record_sha256`
 the relationship is marked as superseding only after the child is approved.
 
 Reviewer identifiers and notes are internal and must not be placed in public
-certificates. Bulk queue export is supported by the review UI; bulk approval is
-intentionally unavailable.
+certificates. Governed bulk human review is available only for explicitly
+confirmed, low-risk synthetic batches. Bulk approval remains blocked for
+high-risk records, domain-review records, incomplete technical review, and
+unresolved critical, high, safety, provenance, licensing, or duplicate
+findings. See [Bulk governed human review](bulk_governed_review.md).
