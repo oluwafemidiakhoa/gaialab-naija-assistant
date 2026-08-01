@@ -13,8 +13,10 @@ from src.review_automation.models import (
     AutomatedAuditEvent,
     HumanDecisionAuditEvent,
     RecommendationCategory,
+    ReviewAutomationModelError,
     canonical_sha256,
 )
+from src.review_workflow import ROLE_FOR_STATE, TRANSITIONS
 
 
 AUTOMATED_AUDIT_FILE = "automated_events.jsonl"
@@ -187,3 +189,97 @@ def audit_history(
         rows,
         key=lambda row: (str(row.get("timestamp", "")), str(row.get("event_id", ""))),
     )
+
+
+def replay_human_review_state(
+    records: Iterable[dict[str, Any]],
+    root: Path,
+    version: str,
+) -> list[dict[str, Any]]:
+    """Overlay valid human decisions in chronological order for reporting.
+
+    The immutable record hash and revision remain authoritative. Audit events
+    can update review metadata only when their integrity hash, version, record
+    identity, transition, role, and per-record event chain are all valid.
+    """
+    state = {
+        str(record.get("id", "")): dict(record)
+        for record in records
+    }
+    path = audit_path(root, version, human=True)
+    if not path.is_file():
+        return [state[key] for key in sorted(state)]
+
+    parsed: list[tuple[int, HumanDecisionAuditEvent]] = []
+    seen_events: dict[str, str] = {}
+    for ledger_index, row in enumerate(read_jsonl(path)):
+        try:
+            event = HumanDecisionAuditEvent(**row)
+        except (ReviewAutomationModelError, TypeError) as exc:
+            raise DatasetManagementError(
+                f"invalid human audit event in {path}: {exc}"
+            ) from exc
+        if event.dataset_version != version:
+            raise DatasetManagementError(
+                f"human audit event has wrong dataset version: {event.event_id}"
+            )
+        prior_hash = seen_events.get(event.event_id)
+        if prior_hash is not None and prior_hash != event.event_sha256:
+            raise DatasetManagementError(
+                f"human audit event ID conflicts: {event.event_id}"
+            )
+        if prior_hash is None:
+            parsed.append((ledger_index, event))
+            seen_events[event.event_id] = event.event_sha256
+
+    parsed.sort(key=lambda item: (item[1].timestamp, item[0]))
+    latest_status: dict[str, str] = {}
+    for _, event in parsed:
+        record = state.get(event.record_id)
+        if record is None:
+            raise DatasetManagementError(
+                f"human audit event references unknown record: {event.record_id}"
+            )
+        if (
+            event.record_sha256 != record.get("example_sha256")
+            or event.record_revision != int(record.get("revision", 1))
+        ):
+            raise DatasetManagementError(
+                f"human audit event does not match current record: {event.record_id}"
+            )
+        previous_event_status = latest_status.get(event.record_id)
+        if (
+            previous_event_status is not None
+            and event.prior_status != previous_event_status
+        ):
+            raise DatasetManagementError(
+                f"broken human audit transition chain for {event.record_id}"
+            )
+        if event.new_status not in TRANSITIONS.get(event.prior_status, set()):
+            raise DatasetManagementError(
+                f"invalid human audit transition for {event.record_id}: "
+                f"{event.prior_status} -> {event.new_status}"
+            )
+        allowed_roles = ROLE_FOR_STATE.get(event.new_status)
+        if allowed_roles and event.reviewer_role not in allowed_roles:
+            raise DatasetManagementError(
+                f"human audit role cannot set {event.new_status}: {event.record_id}"
+            )
+        record.update(
+            review_status=event.new_status,
+            reviewer=event.reviewer_identifier,
+            review_date=event.timestamp,
+            review_notes=event.decision_note,
+        )
+        if event.new_status == "technical_reviewed":
+            record["technical_review_completed"] = True
+            record["technical_review_timestamp"] = event.timestamp
+        if event.new_status == "domain_reviewed":
+            record["domain_review_completed"] = True
+            record["domain_review_timestamp"] = event.timestamp
+        if event.new_status == "approved":
+            record["approval_timestamp"] = event.timestamp
+            record["approved_revision"] = event.record_revision
+            record["approved_record_sha256"] = event.record_sha256
+        latest_status[event.record_id] = event.new_status
+    return [state[key] for key in sorted(state)]

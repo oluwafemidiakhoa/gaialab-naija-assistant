@@ -91,6 +91,12 @@ match the current immutable record. Missing or stale evidence produces
 provenance, licensing, and other governed findings remain independently
 blocking.
 
+Refresh reporting also replays `human_events.jsonl` in timestamp order, using
+append order when timestamps are equal. Each event must have a valid event
+hash, dataset version, record SHA-256, revision, transition chain, and reviewer
+role. The latest valid `new_status` becomes the reported status; replay never
+modifies the immutable snapshot or appends a human decision.
+
 ## Execute
 
 Inspect the complete preview first. A real write requires both `--write` and the
@@ -170,4 +176,3 @@ Open **Bulk Governed Review**, enter the same filter, reviewer identity, role,
 action, note, and limit, then select **Preview governed batch**. Write mode
 remains disabled until the authenticated reviewer ID matches, the exact
 confirmation phrase is entered, and at least one record is allowed.
-

@@ -145,6 +145,21 @@ def test_draft_to_refresh_to_technical_reviewed(tmp_path: Path):
     result = execute(technical, registry, audit_root, recommendations, assessments)
     assert result["records_written"] == 1
     assert review_state(registry, VERSION)[0]["review_status"] == "technical_reviewed"
+    # Deliberately pass the stale pre-technical state: refresh must rebuild the
+    # effective status from the newer, hash-bound human audit event.
+    refreshed = refresh_review_outputs(
+        automated,
+        VERSION,
+        output_root=refresh_root,
+        release_root=tmp_path / "releases",
+        audit_root=audit_root,
+        generated_at="2026-08-01T12:00:00+00:00",
+    )
+    progress = json.loads(
+        refreshed["outputs"]["review_progress"].read_text(encoding="utf-8")
+    )
+    assert progress["status_counts"] == {"technical_reviewed": 1}
+    assert progress["reviewed_count"] == 1
 
 
 def test_duplicate_blocked_records_remain_blocked_after_refresh(tmp_path: Path):
