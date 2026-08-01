@@ -180,6 +180,12 @@ def parser() -> argparse.ArgumentParser:
         default=Path("evaluation/quality"),
     )
     bulk.add_argument(
+        "--refresh-root",
+        type=Path,
+        default=Path("evaluation/review_refresh"),
+        help="Refresh reports that may contain the newest quality assessments.",
+    )
+    bulk.add_argument(
         "--reviews-root",
         type=Path,
         default=Path("evaluation/automated_reviews"),
@@ -222,6 +228,9 @@ def main(argv: list[str] | None = None) -> int:
             args.version,
             quality_root=getattr(
                 args, "quality_root", Path("evaluation/quality")
+            ),
+            refresh_root=getattr(
+                args, "refresh_root", Path("evaluation/review_refresh")
             ),
         )
         recommendations = load_latest_recommendations(

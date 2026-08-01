@@ -75,6 +75,22 @@ Selection is deterministic: records matching the exact category are ordered by
 record ID and then limited. A repeated preview over unchanged state has the same
 preview hash and batch operation ID.
 
+## Current quality-assessment linkage
+
+Standalone quality scoring stores assessments under
+`evaluation/quality/<version>/`, while `review_automation.py refresh` stores its
+recalculated assessments under `evaluation/review_refresh/<version>/`. Bulk
+review considers both write-once stores and selects the run with the newest
+`assessed_at` timestamp. A custom refresh location can be supplied with
+`--refresh-root` or `GAIALAB_REVIEW_REFRESH` in the Streamlit panel.
+
+Location alone never makes an assessment valid. Technical review and approval
+still require the selected assessment's `record_id` and `record_sha256` to
+match the current immutable record. Missing or stale evidence produces
+`current_quality_assessment_missing`; unresolved duplicate, safety,
+provenance, licensing, and other governed findings remain independently
+blocking.
+
 ## Execute
 
 Inspect the complete preview first. A real write requires both `--write` and the

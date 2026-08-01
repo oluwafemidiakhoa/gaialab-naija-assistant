@@ -35,6 +35,9 @@ AUTOMATED_DIR = Path(
     os.getenv("GAIALAB_AUTOMATED_REVIEWS", "evaluation/automated_reviews")
 )
 QUALITY_DIR = Path(os.getenv("GAIALAB_QUALITY_ROOT", "evaluation/quality"))
+REFRESH_DIR = Path(
+    os.getenv("GAIALAB_REVIEW_REFRESH", "evaluation/review_refresh")
+)
 AUDIT_DIR = Path(os.getenv("GAIALAB_REVIEW_AUDIT", "evaluation/review_audit"))
 
 
@@ -130,7 +133,9 @@ def run(*, configure_page: bool = True) -> None:
                 limit=int(limit),
                 escalation_target=escalation_target,
                 assessments=load_latest_assessments(
-                    version, quality_root=QUALITY_DIR
+                    version,
+                    quality_root=QUALITY_DIR,
+                    refresh_root=REFRESH_DIR,
                 ),
                 recommendations=load_latest_recommendations(
                     version, reviews_root=AUTOMATED_DIR
@@ -208,7 +213,9 @@ def run(*, configure_page: bool = True) -> None:
                 releases_dir=RELEASES_DIR,
                 audit_root=AUDIT_DIR,
                 assessments=load_latest_assessments(
-                    version, quality_root=QUALITY_DIR
+                    version,
+                    quality_root=QUALITY_DIR,
+                    refresh_root=REFRESH_DIR,
                 ),
                 recommendations=load_latest_recommendations(
                     version, reviews_root=AUTOMATED_DIR
