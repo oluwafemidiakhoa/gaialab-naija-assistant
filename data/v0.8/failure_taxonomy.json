@@ -1,0 +1,18 @@
+{
+  "dataset_version": "v0.8-draft",
+  "schema_version": "1.0",
+  "labels": {
+    "excessive_template_language": "Boilerplate overwhelms the requested concise message.",
+    "incomplete_intent": "The requested communicative action is not completed clearly.",
+    "sender_recipient_role_reversal": "The response swaps who sent or received an item or message.",
+    "state_reversal": "The response changes a stated business state into its opposite.",
+    "unclear_business_state": "The response leaves the current transaction state ambiguous.",
+    "unsafe_compliance": "The response assists unsafe, deceptive, or unlawful conduct.",
+    "unsupported_account_action": "The response invents an account credit, debit, hold, or restriction.",
+    "unsupported_penalty": "The response invents a penalty or adverse consequence.",
+    "unsupported_refund": "The response introduces or confirms a refund without support.",
+    "unsupported_timeline": "The response invents a processing or delivery timeframe.",
+    "verbosity_mismatch": "The response is materially longer or shorter than requested.",
+    "weak_nigerian_context": "The response misses relevant Nigerian language or business context."
+  }
+}

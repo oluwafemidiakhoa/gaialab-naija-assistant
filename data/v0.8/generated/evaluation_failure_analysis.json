@@ -1,0 +1,34 @@
+{
+  "adapter_version": "v0.7.0-rc.3",
+  "classification_counts": {
+    "borderline": 2,
+    "fail": 4,
+    "pass": 4
+  },
+  "errors": [],
+  "evaluation_count": 10,
+  "evidence_warning": "Exact prompts and model responses were not supplied; summaries were not promoted to transcripts.",
+  "failure_type_counts": {
+    "incomplete_intent": 1,
+    "sender_recipient_role_reversal": 2,
+    "state_reversal": 2,
+    "unclear_business_state": 2,
+    "unsupported_penalty": 1,
+    "unsupported_refund": 2,
+    "unsupported_timeline": 1
+  },
+  "missing_transcript_evidence": [
+    "eval-001",
+    "eval-002",
+    "eval-003",
+    "eval-004",
+    "eval-005",
+    "eval-006",
+    "eval-007",
+    "eval-008",
+    "eval-009",
+    "eval-010"
+  ],
+  "transcript_evidence_complete": false,
+  "valid_classifications": true
+}
