@@ -194,3 +194,32 @@ def test_latest_audit_event_wins(
         latest_states[record_id]["reviewer_role"]
         == "release_manager"
     )
+
+
+def test_incident_backup_events_never_authorize_release_records(tmp_path: Path) -> None:
+    dataset_version = "v0.8-draft"
+    audit_root = tmp_path / "review_audit"
+    official = audit_root / dataset_version / "human_events.jsonl"
+    incident = (
+        audit_root
+        / dataset_version
+        / "incidents"
+        / "human_events_pytest_pollution.jsonl"
+    )
+    write_jsonl(official, [])
+    write_jsonl(
+        incident,
+        [{
+            "event_type": "human_decision",
+            "dataset_version": dataset_version,
+            "record_id": "must-not-advance",
+            "record_sha256": "a" * 64,
+            "prior_status": "technical_reviewed",
+            "new_status": "approved",
+            "action": "approve",
+            "reviewer_role": "release_manager",
+            "timestamp": "2026-08-02T10:00:00+00:00",
+        }],
+    )
+
+    assert load_latest_review_states(audit_root, dataset_version) == {}

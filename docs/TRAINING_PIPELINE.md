@@ -21,6 +21,16 @@ not copied or relabelled as `rc1`. The historical
 empty-dataset refusal. Runnable examples use
 `configs/training/v0.7.0-rc.3.yaml`.
 
+The existing `data/release_candidates/v0.8-rc1/` directory is retained as
+immutable incident evidence, but it is **invalid for governed training**. It
+was built after the legacy release builder recursively discovered human-event
+shaped records in a quarantined pytest-pollution backup rather than reading
+only the authoritative ledger. It must not be deleted, overwritten, relabelled,
+trained from, or represented as `v0.8.0-rc.1`. Its internally consistent split
+hashes do not establish valid human authorization. Recovery must use a new
+candidate version after legitimate decisions exist in
+`evaluation/review_audit/v0.8-draft/human_events.jsonl`.
+
 Both candidates were built from source release `v0.6`. The release builder's
 audit root is `evaluation/review_audit`, with v0.6 human decisions in
 `evaluation/review_audit/v0.6/human_events.jsonl`. Candidate manifests and
@@ -45,6 +55,14 @@ Before any model is loaded, the trainer:
 7. matches every row to an eligible decision with the same record SHA-256; and
 8. refuses a non-empty output directory unless resume or explicit overwrite is
    requested.
+
+Release construction reads only the authoritative
+`evaluation/review_audit/<version>/human_events.jsonl` ledger. Files under an
+`incidents/` directory, backups, generated reports, and other JSON files are
+never active review authority. New v0.8 candidate manifests must bind the
+authoritative ledger with `human_audit_sha256` and
+`human_audit_event_count`; training fails closed when either field is absent.
+This prevents quarantined audit evidence from being replayed into eligibility.
 
 Immutable candidate rows may still say `draft`: approval is append-only and is
 represented by the eligibility report derived from human audit events. The

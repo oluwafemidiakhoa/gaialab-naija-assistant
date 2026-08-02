@@ -259,6 +259,13 @@ def candidate_evidence(directory: Path) -> CandidateEvidence | None:
         raise GovernanceEvidenceError(
             "training inputs must come from a completed candidate"
         )
+    if str(manifest.get("source_version", "")).startswith("v0.8"):
+        audit_hash = str(manifest.get("human_audit_sha256", "")).strip()
+        audit_count = manifest.get("human_audit_event_count")
+        if len(audit_hash) != 64 or not isinstance(audit_count, int) or audit_count < 1:
+            raise GovernanceEvidenceError(
+                "v0.8 candidate lacks authoritative human-audit hash and count"
+            )
     recorded_manifest_hash = str(manifest.get("release_candidate_sha256", "")).strip()
     if recorded_manifest_hash:
         manifest_payload = {

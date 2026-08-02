@@ -184,6 +184,17 @@ def test_candidate_hash_mismatch_is_rejected(tmp_path):
         validate_training_bundle(training, validation)
 
 
+def test_v08_candidate_requires_authoritative_audit_binding(tmp_path):
+    training, validation = candidate_files(tmp_path)
+    manifest_path = tmp_path / "release_candidate_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["source_version"] = "v0.8-draft"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(GovernanceEvidenceError, match="human-audit hash and count"):
+        validate_training_bundle(training, validation)
+
+
 def test_release_label_must_match_candidate(tmp_path):
     training, validation = candidate_files(tmp_path)
     evidence = validate_training_bundle(training, validation).candidate_evidence
