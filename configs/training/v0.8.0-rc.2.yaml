@@ -1,0 +1,54 @@
+release_version: v0.8.0-rc.2
+
+dataset:
+  candidate_version: v0.8-rc2
+  train_file: data/release_candidates/v0.8-rc2/training.jsonl
+  validation_file: data/release_candidates/v0.8-rc2/validation.jsonl
+  held_out_benchmark_file: data/release_candidates/v0.8-rc2/held_out_benchmark.jsonl
+  source_manifest_file: data/releases/v0.8-draft/dataset_manifest.json
+
+integrity:
+  release_candidate_sha256: 755165026934afc68ade34fd50610016af284cbe2cd769f3b019892e15f3189d
+  source_manifest_sha256: 67bd340d2f0400222517b0b86f7f41d91839d23b11f22477e4d24b02983ffd00
+  human_audit_sha256: 1c953505356ae8241f588f5b23f5f3ba4487e369584f789ffe26dde9b0bc8b5f
+  human_audit_event_count: 248
+  eligible_count: 80
+  training_sha256: 92e256eb82a64be41f7d5da6df7dafc360020f7360b386751c8540fdfb927732
+  training_count: 68
+  validation_sha256: 4bdf6777660c61e3e33aad2f83896bacc8d51e567a3fcc47935af39f68d444ec
+  validation_count: 6
+  held_out_benchmark_sha256: 2ecd247a9c8865b76346748f927b21939a81e9c4cc2607d6622570221cdc2748
+  held_out_benchmark_count: 6
+
+model:
+  base_model: Qwen/Qwen2.5-0.5B-Instruct
+  base_model_revision: main
+
+training:
+  max_seq_length: 512
+  epochs: 3.0
+  max_steps: -1
+  learning_rate: 0.0002
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  seed: 42
+  warmup_ratio: 0.1
+  logging_steps: 1
+  save_steps: 10
+  eval_steps: 10
+
+lora:
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
+output:
+  output_dir: ../gaialab-output/training-v0.8.0-rc.2
+
+hub:
+  hub_model_id: mgbam/gaialab-naija-assistant-v0.8.0-rc.2-lora
