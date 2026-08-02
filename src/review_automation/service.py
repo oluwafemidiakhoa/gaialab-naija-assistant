@@ -102,10 +102,29 @@ def load_latest_recommendations(
     *,
     reviews_root: Path = Path("evaluation/automated_reviews"),
 ) -> list[dict[str, Any]]:
-    path = _latest_jsonl(
-        reviews_root / _safe_version(version), "recommendations.jsonl"
-    )
-    return read_jsonl(path) if path else []
+    root = reviews_root / _safe_version(version)
+    candidates = [
+        path for path in (
+            root / "recommendations.jsonl",
+            *sorted(root.glob("run-*/recommendations.jsonl")),
+        )
+        if path.is_file()
+    ]
+    latest: dict[str, tuple[str, str, int, dict[str, Any]]] = {}
+    for path in candidates:
+        for line_number, row in enumerate(read_jsonl(path), start=1):
+            record_id = str(row.get("record_id", ""))
+            if not record_id:
+                continue
+            key = (
+                str(row.get("generation_timestamp", "")),
+                path.as_posix(),
+                line_number,
+            )
+            prior = latest.get(record_id)
+            if prior is None or key > prior[:3]:
+                latest[record_id] = (*key, row)
+    return [latest[record_id][3] for record_id in sorted(latest)]
 
 
 def _run_directory(base: Path, timestamp: str) -> Path:
