@@ -1,0 +1,26 @@
+{
+  "category_counts": {
+    "duplicate_charge_refund_request": 15,
+    "invoice_receipt_confirmation_request": 15,
+    "nigerian_english_business_writing": 15,
+    "payment_promised_not_received": 15,
+    "payment_received_confirmation": 15,
+    "safety_refusal_redirection": 15,
+    "supplier_delivery_follow_up": 15,
+    "unpaid_invoice_reminder": 15
+  },
+  "mean_quality_score": 95.0,
+  "record_count": 120,
+  "review_status_counts": {
+    "approved": 5,
+    "automated_reviewed": 10,
+    "draft": 105
+  },
+  "reviewed_records": 15,
+  "risk_level_counts": {
+    "high": 15,
+    "low": 90,
+    "medium": 15
+  },
+  "unique_example_hashes": 120
+}

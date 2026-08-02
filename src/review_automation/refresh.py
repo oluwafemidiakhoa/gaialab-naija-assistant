@@ -12,6 +12,7 @@ from src.dataset_management import atomic_create
 from src.quality_intelligence import assess_records
 from src.release_scorecard import generate_scorecard
 from src.review_automation.duplicates import find_duplicate_matches
+from src.review_automation.audit import replay_human_review_state
 from src.review_automation.service import utc_now
 from src.training_eligibility import assess_eligibility
 
@@ -45,6 +46,7 @@ def refresh_review_outputs(
     *,
     output_root: Path = Path("evaluation/review_refresh"),
     release_root: Path = Path("data/releases"),
+    audit_root: Path = Path("evaluation/review_audit"),
     generated_at: str | None = None,
 ) -> dict[str, Any]:
     """Recalculate advisory quality, eligibility, progress, and a scorecard.
@@ -52,6 +54,7 @@ def refresh_review_outputs(
     This function creates reports only. It never builds or publishes a release.
     """
     timestamp = generated_at or utc_now()
+    records = replay_human_review_state(records, audit_root, version)
     assessments = assess_records(records, assessed_at=timestamp)
     assessment_rows = [asdict(assessment) for assessment in assessments]
     assessment_by_id = {

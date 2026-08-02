@@ -1,0 +1,1215 @@
+{
+  "blocked_count": 120,
+  "blocker_counts": {
+    "final_approval_incomplete": 120,
+    "not_human_approved": 120,
+    "technical_review_incomplete": 120,
+    "training_eligible_false": 120
+  },
+  "dataset_version": "v0.8-draft",
+  "ready_count": 0,
+  "reason": "Draft records require independent human review; release creation is refused.",
+  "records": [
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-01-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-02-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-03-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-04-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-05-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-06-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-07-015"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-001"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-002"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-003"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-004"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-005"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-006"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-007"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-008"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-009"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-010"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-011"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-012"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-013"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-014"
+    },
+    {
+      "blockers": [
+        "not_human_approved",
+        "technical_review_incomplete",
+        "final_approval_incomplete",
+        "training_eligible_false"
+      ],
+      "ready": false,
+      "record_id": "v08-fd-08-015"
+    }
+  ],
+  "training_release_allowed": false
+}

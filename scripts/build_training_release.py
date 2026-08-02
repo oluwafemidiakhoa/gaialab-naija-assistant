@@ -68,38 +68,33 @@ def load_latest_review_states(
     audit_root: Path,
     release_version: str,
 ) -> dict[str, dict[str, Any]]:
-    """Return the latest valid review event for every record."""
-    version_root = audit_root / release_version
+    """Return latest states from the one authoritative human-event ledger.
 
-    if not version_root.exists():
+    Incident backups and generated reports may also contain JSON audit-shaped
+    objects. They are evidence about an incident, not active review authority,
+    and must never be recursively replayed into a release candidate.
+    """
+    ledger = audit_root / release_version / "human_events.jsonl"
+    if not ledger.is_file():
         return {}
 
     latest: dict[str, dict[str, Any]] = {}
+    for event in read_audit_events(ledger):
+        if event.get("dataset_version") != release_version:
+            continue
+        if event.get("event_type") != "human_decision":
+            continue
 
-    for path in sorted(version_root.rglob("*.json*")):
-        for event in read_audit_events(path):
-            if event.get("dataset_version") != release_version:
-                continue
+        record_id = str(event.get("record_id", "")).strip()
+        new_status = str(event.get("new_status", "")).strip()
+        timestamp = str(event.get("timestamp", "")).strip()
+        if not record_id or not new_status or not timestamp:
+            continue
 
-            if event.get("event_type") != "human_decision":
-                continue
-
-            record_id = str(event.get("record_id", "")).strip()
-            new_status = str(event.get("new_status", "")).strip()
-            timestamp = str(event.get("timestamp", "")).strip()
-
-            if not record_id or not new_status or not timestamp:
-                continue
-
-            current = latest.get(record_id)
-            current_timestamp = (
-                str(current.get("timestamp", ""))
-                if current
-                else ""
-            )
-
-            if current is None or timestamp > current_timestamp:
-                latest[record_id] = event
+        current = latest.get(record_id)
+        current_timestamp = str(current.get("timestamp", "")) if current else ""
+        if current is None or timestamp > current_timestamp:
+            latest[record_id] = event
 
     return latest
 
@@ -158,6 +153,8 @@ def build(
         audit_root,
         source,
     )
+    human_audit_path = audit_root / source / "human_events.jsonl"
+    human_audit_events = read_audit_events(human_audit_path)
 
     effective_records = [
         apply_effective_review_state(
@@ -196,6 +193,10 @@ def build(
         "eligible_count": len(eligible),
         "excluded_count": len(records) - len(eligible),
         "review_event_count": len(review_states),
+        "human_audit_event_count": len(human_audit_events),
+        "human_audit_sha256": (
+            file_sha256(human_audit_path) if human_audit_path.is_file() else None
+        ),
         "dry_run": dry_run,
     }
 

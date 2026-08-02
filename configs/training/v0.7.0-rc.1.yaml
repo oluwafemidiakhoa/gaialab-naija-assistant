@@ -1,0 +1,40 @@
+release_version: v0.7.0-rc.1
+
+dataset:
+  candidate_version: v0.7-rc1
+  train_file: data/release_candidates/v0.7-rc1/training.jsonl
+  validation_file: data/release_candidates/v0.7-rc1/validation.jsonl
+  held_out_benchmark_file: data/release_candidates/v0.7-rc1/held_out_benchmark.jsonl
+
+model:
+  base_model: Qwen/Qwen2.5-0.5B-Instruct
+  base_model_revision: main
+
+training:
+  max_seq_length: 512
+  epochs: 3.0
+  max_steps: -1
+  learning_rate: 0.0002
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  seed: 42
+  warmup_ratio: 0.05
+  logging_steps: 1
+  save_steps: 25
+  eval_steps: 25
+
+lora:
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
+output:
+  output_dir: outputs/training/v0.7.0-rc.1/qwen2.5-0.5b-lora
+
+hub:
+  hub_model_id: oluwafemidiakhoa/gaialab-naija-assistant-v0.7.0-rc.1-lora

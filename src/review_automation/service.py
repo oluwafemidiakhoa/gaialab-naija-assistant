@@ -64,9 +64,37 @@ def load_latest_assessments(
     version: str,
     *,
     quality_root: Path = Path("evaluation/quality"),
+    refresh_root: Path = Path("evaluation/review_refresh"),
 ) -> list[dict[str, Any]]:
-    path = _latest_jsonl(quality_root / _safe_version(version), "quality_assessments.jsonl")
-    return read_jsonl(path) if path else []
+    """Load the newest assessment run from quality scoring or review refresh.
+
+    Refresh reports intentionally live separately from standalone quality
+    reports. Both contain the same governed assessment schema, so downstream
+    review must consider both locations. The selected rows are still checked
+    against the current record SHA-256 by the decision workflow.
+    """
+    safe = _safe_version(version)
+    roots = tuple(dict.fromkeys((quality_root / safe, refresh_root / safe)))
+    candidates = {
+        path
+        for root in roots
+        for path in (
+            root / "quality_assessments.jsonl",
+            *root.glob("run-*/quality_assessments.jsonl"),
+        )
+        if path.is_file()
+    }
+    if not candidates:
+        return []
+    runs: list[tuple[str, str, list[dict[str, Any]]]] = []
+    for path in candidates:
+        rows = read_jsonl(path)
+        assessed_at = max(
+            (str(row.get("assessed_at", "")) for row in rows),
+            default="",
+        )
+        runs.append((assessed_at, path.as_posix(), rows))
+    return max(runs, key=lambda item: (item[0], item[1]))[2]
 
 
 def load_latest_recommendations(

@@ -1,0 +1,20 @@
+{
+  "category_counts": {
+    "duplicate_charge_refund_request": 15,
+    "invoice_receipt_confirmation_request": 15,
+    "nigerian_english_business_writing": 15,
+    "payment_promised_not_received": 15,
+    "payment_received_confirmation": 15,
+    "safety_refusal_redirection": 15,
+    "supplier_delivery_follow_up": 15,
+    "unpaid_invoice_reminder": 15
+  },
+  "dataset_version": "v0.8-draft",
+  "duplicate_ids": [],
+  "duplicate_prompts": [],
+  "errors": [],
+  "near_duplicate_prompts": [],
+  "record_count": 120,
+  "valid": true,
+  "warnings": []
+}

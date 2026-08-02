@@ -107,6 +107,18 @@ See [the complete AI-assisted review workflow](docs/AI_ASSISTED_REVIEW.md).
 The preview-first batch controls are documented in
 [Bulk governed human review](docs/bulk_governed_review.md).
 
+## v0.8 failure-driven roadmap
+
+The local `v0.8-draft` expansion targets state reversal, role reversal, and
+unsupported payment, refund, penalty, timeline, and account-action claims
+observed in the first reported `v0.7.0-rc.3` adapter evaluation. It contains
+120 synthetic drafts with explicit business-state metadata and prohibited
+inference rules. All records remain in draft status and are ineligible for
+training until factual, technical, Nigerian cultural, required domain, and
+final human reviews are recorded. Run `python scripts/pipeline_v08.py` to build
+and validate the drafts; the pipeline deliberately refuses to create a
+training release. See [the v0.8 workflow](docs/V08_FAILURE_DRIVEN_DATASET.md).
+
 ## v0.3 Training Pipeline
 
 1. Dataset collection
@@ -118,6 +130,28 @@ The preview-first batch controls are documented in
 7. Validation-loss evaluation
 8. Manual response testing
 9. Model release and documentation
+
+## Governed GPU LoRA pipeline
+
+The prerelease training path validates immutable candidate manifests,
+per-record eligibility evidence, content hashes, duplicate prompts, and split
+leakage before loading a model. Normal training requires CUDA; local CPU use is
+limited to validation-only dry runs and smoke checks.
+
+```bash
+python scripts/train_governed_lora.py \
+  --config configs/training/v0.7.0-rc.3.yaml \
+  --output-dir outputs/dry-runs/v0.7.0-rc.3 \
+  --dry-run
+```
+
+The immutable `v0.7-rc1` candidate contains no eligible records. The seven
+subsequently approved records belong to the distinct `v0.7-rc3` candidate
+(five train, one validation, one held-out); they are enough for pipeline
+validation, not meaningful model-quality claims. See
+[the governed training guide](docs/TRAINING_PIPELINE.md) and the
+[Kaggle GPU notebook](notebooks/gaialab_governed_lora_kaggle.ipynb). No model
+has been trained or published by adding this pipeline.
 
 ## Training Configuration
 
