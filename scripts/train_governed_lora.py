@@ -19,6 +19,7 @@ from src.governed_training import (  # noqa: E402
     GovernedTrainingError,
     assert_release_identity,
     assert_output_isolated,
+    assert_expected_candidate_integrity,
     build_training_manifest,
     cuda_information,
     deterministic_order,
@@ -27,6 +28,7 @@ from src.governed_training import (  # noqa: E402
     require_execution_hardware,
     serializable_arguments,
     tokenize_supervised_record,
+    validate_candidate_splits,
     validate_training_bundle,
     write_new_json,
 )
@@ -38,7 +40,9 @@ DEFAULT_BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 def _config_defaults(path: Path) -> dict[str, Any]:
     config = load_yaml_config(path)
     defaults: dict[str, Any] = {}
-    for section in ("dataset", "model", "training", "lora", "output", "hub"):
+    for section in (
+        "dataset", "integrity", "model", "training", "lora", "output", "hub"
+    ):
         value = config.get(section, {})
         if not isinstance(value, dict):
             raise GovernedTrainingError(
@@ -46,6 +50,7 @@ def _config_defaults(path: Path) -> dict[str, Any]:
             )
         defaults.update(value)
     defaults["release_version"] = config.get("release_version", "unknown")
+    defaults["integrity_enabled"] = bool(config.get("integrity"))
     return defaults
 
 
@@ -65,6 +70,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--validation-file",
         type=Path,
         default=defaults.get("validation_file"),
+    )
+    parser.add_argument(
+        "--held-out-benchmark-file",
+        type=Path,
+        default=defaults.get("held_out_benchmark_file"),
+    )
+    parser.add_argument(
+        "--source-manifest-file",
+        type=Path,
+        default=defaults.get("source_manifest_file"),
     )
     parser.add_argument("--output-dir", type=Path, default=defaults.get("output_dir"))
     parser.add_argument(
@@ -148,6 +163,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "target_modules",
             ["q_proj", "k_proj", "v_proj", "o_proj"],
         ),
+        **{
+            key: defaults.get(key)
+            for key in (
+                "candidate_version",
+                "release_candidate_sha256",
+                "source_manifest_sha256",
+                "human_audit_sha256",
+                "human_audit_event_count",
+                "eligible_count",
+                "training_sha256",
+                "training_count",
+                "validation_sha256",
+                "validation_count",
+                "held_out_benchmark_sha256",
+                "held_out_benchmark_count",
+            )
+        },
+        integrity_enabled=defaults.get("integrity_enabled", False),
     )
     args = parser.parse_args(argv)
     if (
@@ -382,6 +415,42 @@ def _training_stack(
 def run(args: argparse.Namespace) -> dict[str, Any]:
     validate_hyperparameters(args)
     bundle = validate_training_bundle(args.train_file, args.validation_file)
+    held_out_records: tuple[dict[str, Any], ...] = ()
+    expected = {
+        key: getattr(args, key)
+        for key in (
+            "candidate_version",
+            "release_candidate_sha256",
+            "source_manifest_sha256",
+            "human_audit_sha256",
+            "human_audit_event_count",
+            "eligible_count",
+            "training_sha256",
+            "training_count",
+            "validation_sha256",
+            "validation_count",
+            "held_out_benchmark_sha256",
+            "held_out_benchmark_count",
+        )
+        if hasattr(args, key) and getattr(args, key) is not None
+    } if args.integrity_enabled else {}
+    if expected:
+        if args.held_out_benchmark_file is None or args.source_manifest_file is None:
+            raise GovernedTrainingError(
+                "held-out benchmark and source manifest files are required"
+            )
+        bundle, held_out_records = validate_candidate_splits(
+            args.train_file,
+            args.validation_file,
+            args.held_out_benchmark_file,
+        )
+        assert_expected_candidate_integrity(
+            bundle=bundle,
+            held_out_records=held_out_records,
+            source_manifest_file=args.source_manifest_file,
+            held_out_benchmark_file=args.held_out_benchmark_file,
+            expected=expected,
+        )
     assert_release_identity(args.release_version, bundle.candidate_evidence)
     assert_output_isolated(
         args.output_dir,
@@ -424,6 +493,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             seed=args.seed,
             status=status,
             cuda=cuda,
+            held_out_benchmark_file=args.held_out_benchmark_file,
+            held_out_records=held_out_records,
             backup_path=backup,
         )
         write_new_json(
@@ -497,6 +568,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             seed=args.seed,
             status=status,
             cuda=cuda,
+            held_out_benchmark_file=args.held_out_benchmark_file,
+            held_out_records=held_out_records,
             metrics=metrics_value,
             checkpoints=checkpoints,
             backup_path=backup,
