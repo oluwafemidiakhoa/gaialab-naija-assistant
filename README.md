@@ -107,6 +107,27 @@ See [the complete AI-assisted review workflow](docs/AI_ASSISTED_REVIEW.md).
 The preview-first batch controls are documented in
 [Bulk governed human review](docs/bulk_governed_review.md).
 
+For the v0.8 draft, preview the full remaining-category workflow with:
+
+```powershell
+.\.venv311\Scripts\python.exe scripts\run_governed_v08_review.py `
+  --version v0.8-draft --all-remaining-categories --dry-run
+```
+
+After the named reviewers have personally reviewed the selected records, the
+explicit write command is:
+
+```powershell
+.\.venv311\Scripts\python.exe scripts\run_governed_v08_review.py `
+  --version v0.8-draft --all-remaining-categories --write `
+  --confirm "I HAVE REVIEWED THESE RECORDS"
+```
+
+Add `--stop-before-approval` to end after technical review and preserve final
+approval as a separate run. This automation records explicit human decisions;
+it never invents them or converts an AI recommendation into approval. See
+[the v0.8 automated governed-review guide](docs/V08_AUTOMATED_GOVERNED_REVIEW.md).
+
 ## v0.8 failure-driven roadmap
 
 The local `v0.8-draft` expansion targets state reversal, role reversal, and
