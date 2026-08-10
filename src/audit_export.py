@@ -216,8 +216,6 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
             return {"valid": False, "reason": "invalid_manifest_signature"}
 
     verified_receipts: list[Mapping[str, Any]] = []
-    signed_receipts = 0
-    unsigned_receipts = 0
     for index, entry in enumerate(entries):
         if not isinstance(entry, Mapping):
             return {"valid": False, "reason": "invalid_entry_shape", "entry_index": index}
@@ -227,8 +225,8 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
         receipt_signature = entry.get("signature")
         if not verification_id or not _is_sha256(payload_sha256) or not isinstance(receipt, Mapping):
             return {"valid": False, "reason": "invalid_entry_shape", "entry_index": index}
-        if receipt_signature is not None and not isinstance(receipt_signature, Mapping):
-            return {"valid": False, "reason": "invalid_entry_shape", "entry_index": index}
+        if not isinstance(receipt_signature, Mapping):
+            return {"valid": False, "reason": "missing_or_invalid_receipt_signature", "entry_index": index}
         if receipt.get("verification_id") != verification_id:
             return {
                 "valid": False,
@@ -255,19 +253,15 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
                 "recomputed_payload_sha256": recomputed_payload_sha256,
             }
 
-        if receipt_signature is None:
-            unsigned_receipts += 1
-        else:
-            signed_receipts += 1
-            receipt_signature_result = verify_receipt_signature(receipt, receipt_signature)
-            if not receipt_signature_result["valid"]:
-                return {
-                    "valid": False,
-                    "reason": "receipt_signature_failure",
-                    "entry_index": index,
-                    "verification_id": verification_id,
-                    "signature_reason": receipt_signature_result.get("reason"),
-                }
+        receipt_signature_result = verify_receipt_signature(receipt, receipt_signature)
+        if not receipt_signature_result["valid"]:
+            return {
+                "valid": False,
+                "reason": "receipt_signature_failure",
+                "entry_index": index,
+                "verification_id": verification_id,
+                "signature_reason": receipt_signature_result.get("reason"),
+            }
         verified_receipts.append(receipt)
 
     try:
@@ -292,7 +286,6 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
             "payload_hashes_recomputed": True,
             "receipt_signatures_recomputed": True,
             "stored_integrity_flags_trusted": False,
-            "signed_receipts": signed_receipts,
-            "unsigned_receipts": unsigned_receipts,
+            "signed_receipts": len(entries),
         },
     }
