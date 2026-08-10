@@ -8,10 +8,12 @@ login and the base Neon lifecycle store instead of a session-controlled bypass.
 from __future__ import annotations
 
 from contextlib import contextmanager
+import hashlib
 from typing import Any, Mapping
 
 from src.neon_rls import clear_rls_context, current_rls_context, set_tenant_context
 from src.neon_storage import NeonAuditLifecycleStore, NeonReceiptStore, NeonTenantPolicyStore
+from src.receipt_store import ReceiptConflictError, _canonical_json as _receipt_json
 
 
 @contextmanager
@@ -34,10 +36,49 @@ class RLSNeonReceiptStore(NeonReceiptStore):
         *,
         tenant_id: str | None = None,
     ) -> bool:
+        """Persist once atomically and verify idempotent retries by content hash.
+
+        The base MVP implementation performed ``SELECT ... FOR UPDATE`` before
+        inserting. A missing row cannot be locked, so concurrent first-writers
+        could race on the primary key. The RLS production path instead lets the
+        primary-key constraint arbitrate the first writer atomically.
+        """
         if tenant_id is None:
             raise ValueError("Neon RLS receipt persistence requires tenant_id")
+        payload_json = _receipt_json(envelope)
+        payload_sha256 = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
         with _tenant_scope(tenant_id):
-            return super().save(verification_id, envelope, tenant_id=tenant_id)
+            with self.backend.connect(tenant_id=tenant_id) as connection:
+                inserted = connection.execute(
+                    "INSERT INTO verification_receipts "
+                    "(verification_id,payload_sha256,payload_json,tenant_id) "
+                    "VALUES (%s,%s,%s,%s) "
+                    "ON CONFLICT (verification_id) DO NOTHING "
+                    "RETURNING verification_id",
+                    (verification_id, payload_sha256, payload_json, tenant_id),
+                ).fetchone()
+                if inserted is not None:
+                    return True
+
+                existing = connection.execute(
+                    "SELECT payload_sha256,tenant_id FROM verification_receipts "
+                    "WHERE verification_id=%s",
+                    (verification_id,),
+                ).fetchone()
+                # A primary-key conflict with no RLS-visible row means the ID is
+                # owned outside this tenant. Fail closed without disclosing who.
+                if existing is None:
+                    raise ReceiptConflictError(
+                        f"verification_id {verification_id} already exists"
+                    )
+                if (
+                    existing["payload_sha256"] != payload_sha256
+                    or existing["tenant_id"] != tenant_id
+                ):
+                    raise ReceiptConflictError(
+                        f"verification_id {verification_id} already exists with different content"
+                    )
+                return False
 
     def get(self, verification_id: str, *, tenant_id: str | None = None) -> dict[str, Any] | None:
         if tenant_id is None:
