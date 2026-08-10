@@ -19,6 +19,7 @@ ADMIN_SCOPES = frozenset(
     {
         "audit:lifecycle",
         "audit:delete",
+        "dashboard:read",
         "tenants:manage",
         "policies:manage",
         "signing-keys:manage",
