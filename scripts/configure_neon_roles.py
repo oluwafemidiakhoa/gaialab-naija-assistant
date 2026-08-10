@@ -34,6 +34,8 @@ OPERATOR_TABLE_PRIVILEGES = {
     "audit_export_events": ("SELECT", "INSERT", "DELETE"),
     "retention_deletion_plans": ("SELECT", "INSERT"),
     "retention_deletion_events": ("SELECT", "INSERT"),
+    "operator_action_log_heads": ("SELECT", "UPDATE"),
+    "operator_actions": ("SELECT", "INSERT"),
     "gaialab_schema_migrations": ("SELECT",),
 }
 
@@ -42,6 +44,7 @@ SEQUENCE_USAGE_ROLES = {
     "operator": (
         "audit_export_events_event_id_seq",
         "retention_deletion_events_event_id_seq",
+        "operator_actions_event_id_seq",
     ),
 }
 
