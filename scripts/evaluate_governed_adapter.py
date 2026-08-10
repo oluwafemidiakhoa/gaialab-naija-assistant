@@ -66,11 +66,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     _prepare_output(args.output_dir)
     warning = (
-        f"Evaluation set is tiny ({len(evaluation)} records); metrics are not "
-        "reliable for release claims."
-        if len(evaluation) < 30
-        else None
+        f"This candidate has {len(evidence.eligible_records) if evidence else 'few'} "
+        "eligible records and remains a small experimental dataset; evaluation "
+        "metrics are not reliable for production or release-quality claims."
     )
+    split_name = args.evaluation_file.stem
+    generation_settings = {
+        "do_sample": False,
+        "max_new_tokens": args.max_new_tokens,
+        "seed": args.seed,
+        "decoding": "greedy",
+    }
     if args.dry_run:
         summary = {
             "status": "dry_run_validated",
@@ -81,6 +87,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "evaluation_count": len(evaluation),
             "training_count": len(training),
             "candidate_version": evidence.candidate_version if evidence else None,
+            "split_name": split_name,
+            "generation_settings": generation_settings,
             "warning": warning,
         }
         write_new_json(args.output_dir / "evaluation_summary.json", summary)
@@ -156,7 +164,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
     average_loss = loss_numerator / supervised_tokens
     perplexity = math.exp(average_loss) if average_loss < 20 else float("inf")
-    predictions_path = args.output_dir / "predictions.jsonl"
+    predictions_path = args.output_dir / f"predictions.{split_name}.jsonl"
     predictions_path.write_text(
         "".join(
             json.dumps(item, ensure_ascii=False, sort_keys=True) + "\n"
@@ -179,6 +187,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "predictions_file": str(predictions_path),
         "predictions_sha256": file_sha256(predictions_path),
         "seed": args.seed,
+        "generation_settings": generation_settings,
         "warning": warning,
     }
     write_new_json(args.output_dir / "evaluation_summary.json", summary)

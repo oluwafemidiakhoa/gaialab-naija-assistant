@@ -78,6 +78,10 @@ class CandidateEvidence:
     eligibility_report_path: str
     eligibility_report_sha256: str
     eligible_records: Mapping[str, str]
+    release_candidate_sha256: str | None = None
+    source_manifest_sha256: str | None = None
+    human_audit_sha256: str | None = None
+    human_audit_event_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -346,6 +350,14 @@ def candidate_evidence(directory: Path) -> CandidateEvidence | None:
         eligibility_report_path=str(eligibility_path),
         eligibility_report_sha256=file_sha256(eligibility_path),
         eligible_records=eligible_records,
+        release_candidate_sha256=recorded_manifest_hash or None,
+        source_manifest_sha256=str(
+            manifest.get("source_manifest_sha256", "")
+        ).strip() or None,
+        human_audit_sha256=str(
+            manifest.get("human_audit_sha256", "")
+        ).strip() or None,
+        human_audit_event_count=manifest.get("human_audit_event_count"),
     )
 
 
@@ -485,6 +497,73 @@ def validate_evaluation_bundle(
     _verify_governance(training, train_evidence)
     _verify_governance(evaluation, eval_evidence)
     return evaluation, training, eval_evidence
+
+
+def validate_candidate_splits(
+    training_file: Path,
+    validation_file: Path,
+    held_out_benchmark_file: Path,
+) -> tuple[DatasetBundle, tuple[dict[str, Any], ...]]:
+    """Validate all candidate splits without making held-out data trainable."""
+    bundle = validate_training_bundle(training_file, validation_file)
+    held_out, _, held_out_evidence = validate_evaluation_bundle(
+        held_out_benchmark_file,
+        training_file,
+    )
+    if held_out_evidence != bundle.candidate_evidence:
+        raise GovernanceEvidenceError("held-out candidate evidence mismatch")
+    assert_no_overlap(
+        bundle.validation_records,
+        held_out,
+        left_name="validation",
+        right_name="held_out_benchmark",
+    )
+    return bundle, tuple(held_out)
+
+
+def assert_expected_candidate_integrity(
+    *,
+    bundle: DatasetBundle,
+    held_out_records: Sequence[Mapping[str, Any]],
+    source_manifest_file: Path,
+    held_out_benchmark_file: Path,
+    expected: Mapping[str, Any],
+) -> None:
+    """Bind a candidate to reviewed hashes and counts before model loading."""
+    evidence = bundle.candidate_evidence
+    if evidence is None:
+        raise GovernanceEvidenceError("expected an immutable release candidate")
+    actual = {
+        "candidate_version": evidence.candidate_version,
+        "release_candidate_sha256": evidence.release_candidate_sha256,
+        "source_manifest_sha256": file_sha256(source_manifest_file),
+        "human_audit_sha256": evidence.human_audit_sha256,
+        "human_audit_event_count": evidence.human_audit_event_count,
+        "eligible_count": len(evidence.eligible_records),
+        "training_sha256": bundle.train_sha256,
+        "training_count": len(bundle.train_records),
+        "validation_sha256": bundle.validation_sha256,
+        "validation_count": len(bundle.validation_records),
+        "held_out_benchmark_sha256": file_sha256(held_out_benchmark_file),
+        "held_out_benchmark_count": len(held_out_records),
+    }
+    if evidence.source_manifest_sha256 != actual["source_manifest_sha256"]:
+        raise GovernanceEvidenceError(
+            "source manifest does not match candidate provenance"
+        )
+    missing = sorted(key for key in actual if key not in expected)
+    if missing:
+        raise GovernanceEvidenceError(
+            f"training configuration lacks integrity expectations: {', '.join(missing)}"
+        )
+    mismatches = [
+        key for key, value in actual.items()
+        if expected.get(key) != value
+    ]
+    if mismatches:
+        raise GovernanceEvidenceError(
+            "candidate integrity mismatch: " + ", ".join(sorted(mismatches))
+        )
 
 
 def format_chat_text(tokenizer: Any, record: Mapping[str, Any]) -> str:
@@ -712,6 +791,8 @@ def build_training_manifest(
     seed: int,
     status: str,
     cuda: Mapping[str, Any],
+    held_out_benchmark_file: Path | None = None,
+    held_out_records: Sequence[Mapping[str, Any]] = (),
     metrics: Mapping[str, Any] | None = None,
     checkpoints: Sequence[str] = (),
     backup_path: Path | None = None,
@@ -731,6 +812,16 @@ def build_training_manifest(
         else None,
         "eligibility_report_sha256": (
             candidate.eligibility_report_sha256 if candidate else None
+        ),
+        "release_candidate_sha256": (
+            candidate.release_candidate_sha256 if candidate else None
+        ),
+        "source_manifest_sha256": (
+            candidate.source_manifest_sha256 if candidate else None
+        ),
+        "human_audit_sha256": candidate.human_audit_sha256 if candidate else None,
+        "human_audit_event_count": (
+            candidate.human_audit_event_count if candidate else None
         ),
     }
     return {
@@ -754,6 +845,16 @@ def build_training_manifest(
                 "sha256": bundle.validation_sha256,
                 "record_count": len(bundle.validation_records),
             },
+            "held_out_benchmark": (
+                {
+                    "path": str(held_out_benchmark_file),
+                    "sha256": file_sha256(held_out_benchmark_file),
+                    "record_count": len(held_out_records),
+                    "used_for_training": False,
+                }
+                if held_out_benchmark_file is not None
+                else None
+            ),
         },
         "resolved_arguments": dict(resolved_arguments),
         "lora": dict(lora_configuration),
