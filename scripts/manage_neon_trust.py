@@ -17,13 +17,10 @@ from src.neon_storage import (
 
 
 def _backend() -> NeonBackend:
-    runtime_url = os.getenv("GAIALAB_DATABASE_URL")
-    if not runtime_url:
-        raise SystemExit("GAIALAB_DATABASE_URL is required")
-    return NeonBackend(
-        runtime_url,
-        migration_database_url=os.getenv("GAIALAB_MIGRATION_DATABASE_URL"),
-    )
+    migration_url = os.getenv("GAIALAB_MIGRATION_DATABASE_URL")
+    if not migration_url:
+        raise SystemExit("GAIALAB_MIGRATION_DATABASE_URL is required for provisioning")
+    return NeonBackend(migration_url, migration_database_url=migration_url)
 
 
 def _read_json(path: str) -> dict:
