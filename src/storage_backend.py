@@ -1,8 +1,8 @@
 """Runtime storage selection for GaiaLab Naija Trust Rail.
 
 If GAIALAB_DATABASE_URL is configured, all production persistence uses the shared
-Neon Postgres backend. Otherwise existing SQLite stores remain available for
-local development and tests.
+Neon Postgres backend with request-scoped RLS context. Otherwise existing SQLite
+stores remain available for local development and tests.
 """
 
 from __future__ import annotations
@@ -13,15 +13,13 @@ from typing import Any
 
 from src.audit_lifecycle import AuditLifecycleStore
 from src.key_registry import SigningKeyRegistry
+from src.neon_rls import RLSNeonBackend, RLSNeonOperatorRegistry, RLSNeonTenantRegistry
 from src.neon_storage import (
     NeonAuditLifecycleStore,
-    NeonBackend,
-    NeonOperatorRegistry,
     NeonRateLimiter,
     NeonReceiptStore,
     NeonSigningKeyRegistry,
     NeonTenantPolicyStore,
-    NeonTenantRegistry,
 )
 from src.operator_auth import OperatorRegistry
 from src.rate_limit import FixedWindowRateLimiter
@@ -31,14 +29,16 @@ from src.tenant_policy import TenantPolicyStore
 
 
 @lru_cache(maxsize=1)
-def neon_backend() -> NeonBackend | None:
+def neon_backend() -> RLSNeonBackend | None:
     database_url = os.getenv("GAIALAB_DATABASE_URL")
     if not database_url:
         return None
-    return NeonBackend(
+    backend = RLSNeonBackend(
         database_url,
         migration_database_url=os.getenv("GAIALAB_MIGRATION_DATABASE_URL"),
     )
+    backend.assert_schema_current()
+    return backend
 
 
 def storage_mode() -> str:
@@ -48,7 +48,7 @@ def storage_mode() -> str:
 def tenant_registry() -> Any:
     backend = neon_backend()
     if backend:
-        return NeonTenantRegistry(backend)
+        return RLSNeonTenantRegistry(backend)
     path = os.getenv("GAIALAB_TENANT_DB")
     if not path:
         raise RuntimeError("tenant authentication is not configured")
@@ -58,7 +58,7 @@ def tenant_registry() -> Any:
 def operator_registry() -> Any:
     backend = neon_backend()
     if backend:
-        return NeonOperatorRegistry(backend)
+        return RLSNeonOperatorRegistry(backend)
     path = os.getenv("GAIALAB_OPERATOR_DB")
     if not path:
         raise RuntimeError("operator authentication is not configured")
