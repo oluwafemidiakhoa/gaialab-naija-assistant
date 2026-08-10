@@ -66,7 +66,11 @@ def test_openai_responses_wrapper_normalizes_and_gates_delivery():
     }]
     assert result["candidate"]["provider"] == "openai"
     assert result["candidate"]["metadata"]["response_id"] == "resp_1"
-    assert result["candidate"]["metadata"]["usage"]["total_tokens"] == 16
+    assert result["candidate"]["metadata"]["usage"] == {
+        "input_count": 10,
+        "output_count": 6,
+        "total_count": 16,
+    }
     assert result["delivery"] == {
         "automated_delivery_allowed": True,
         "disposition": "ALLOW",
@@ -105,6 +109,7 @@ def test_anthropic_wrapper_separates_system_and_messages():
     }]
     assert candidate.text == "The transfer is still pending."
     assert candidate.metadata["stop_reason"] == "end_turn"
+    assert candidate.metadata["usage"] == {"input_count": 12, "output_count": 5}
 
 
 def test_gemini_interactions_wrapper_uses_output_text():
@@ -121,6 +126,7 @@ def test_gemini_interactions_wrapper_uses_output_text():
     assert interactions.calls == [{"model": "gemini-example", "input": "Status?"}]
     assert candidate.text == "The transfer is still pending."
     assert candidate.metadata["response_id"] == "interaction_1"
+    assert candidate.metadata["usage"] == {"total_count": 8}
 
 
 def test_qwen_dashscope_wrapper_extracts_message_content():
@@ -150,6 +156,7 @@ def test_qwen_dashscope_wrapper_extracts_message_content():
     }]
     assert candidate.text == "The transfer is still pending."
     assert candidate.metadata["request_id"] == "qwen_req_1"
+    assert candidate.metadata["usage"] == {"input_count": 5, "output_count": 4}
 
 
 def test_natlas_local_wrapper_supports_pipeline_style_output():
