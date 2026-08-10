@@ -6,23 +6,14 @@ from src.neon_rls import clear_rls_context, current_rls_context, set_tenant_cont
 
 def test_neon_migrations_are_ordered_and_include_role_hardened_rls():
     migrations = discover_migrations()
-    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004", "0005"]
+    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004", "0005", "0006"]
     assert [migration.name for migration in migrations] == [
-        "initial",
-        "tenant_rls",
-        "database_roles",
-        "observability",
-        "retention_deletion",
+        "initial", "tenant_rls", "database_roles", "observability",
+        "retention_deletion", "operator_action_log",
     ]
 
     rls_sql = migrations[1].sql
-    for table in (
-        "verification_receipts",
-        "tenant_policy_versions",
-        "tenant_policy_events",
-        "audit_exports",
-        "audit_export_events",
-    ):
+    for table in ("verification_receipts", "tenant_policy_versions", "tenant_policy_events", "audit_exports", "audit_export_events"):
         assert f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY" in rls_sql
         assert f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY" in rls_sql
 
@@ -42,6 +33,13 @@ def test_neon_migrations_are_ordered_and_include_role_hardened_rls():
     assert "created_by_operator_id" in retention_sql
     assert "actor_operator_id" in retention_sql
     assert "verification_receipts" not in retention_sql
+
+    action_sql = migrations[5].sql
+    assert "operator_action_log_heads" in action_sql
+    assert "operator_actions" in action_sql
+    assert "previous_action_hash" in action_sql
+    assert "action_hash" in action_sql
+    assert "target_id_sha256" in action_sql
 
 
 def test_migration_checksums_are_stable_sha256_values():
@@ -79,5 +77,7 @@ def test_role_bootstrap_declares_no_privilege_escalation_flags():
     assert "GAIALAB_OPERATOR_ROLE_PASSWORD" in script
     assert "gaialab_schema_migrations" in script
     assert "retention_deletion_plans" in script
+    assert "operator_action_log_heads" in script
+    assert "operator_actions" in script
     assert "DELETE" in script
     assert "postgresql://" not in script
