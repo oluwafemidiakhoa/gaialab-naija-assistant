@@ -1,15 +1,18 @@
-from pathlib import Path
-
 from src import storage_backend
 from src.neon_migrations import discover_migrations
-from src.neon_storage import NeonBackend
+from src.neon_rls import RLSNeonBackend
 from src.trust_api import verify_payload
 
 
-class _FakeNeonBackend:
+class _FakeRLSNeonBackend:
     def __init__(self, database_url, migration_database_url=None):
         self.database_url = database_url
         self.migration_database_url = migration_database_url
+        self.schema_checked = False
+
+    def assert_schema_current(self):
+        self.schema_checked = True
+        return {"pending": [], "drift": [], "unknown_applied_versions": []}
 
 
 class _MemoryReceiptStore:
@@ -24,32 +27,28 @@ class _MemoryReceiptStore:
 def test_storage_mode_selects_neon_when_database_url_is_present(monkeypatch):
     monkeypatch.setenv("GAIALAB_DATABASE_URL", "postgresql://example.invalid/db")
     monkeypatch.setenv("GAIALAB_MIGRATION_DATABASE_URL", "postgresql://direct.invalid/db")
-    monkeypatch.setattr(storage_backend, "NeonBackend", _FakeNeonBackend)
+    monkeypatch.setattr(storage_backend, "RLSNeonBackend", _FakeRLSNeonBackend)
     storage_backend.neon_backend.cache_clear()
     try:
         assert storage_backend.storage_mode() == "neon"
         backend = storage_backend.neon_backend()
         assert backend.database_url == "postgresql://example.invalid/db"
         assert backend.migration_database_url == "postgresql://direct.invalid/db"
+        assert backend.schema_checked is True
     finally:
         storage_backend.neon_backend.cache_clear()
 
 
-def test_neon_backend_construction_does_not_connect_or_run_ddl(monkeypatch):
-    called = False
+def test_rls_neon_backend_runtime_constructor_does_not_run_schema_ddl(monkeypatch):
+    def _unexpected_migration_connect(*args, **kwargs):
+        raise AssertionError("runtime backend construction must not run migration DDL")
 
-    def _unexpected_connect(*args, **kwargs):
-        nonlocal called
-        called = True
-        raise AssertionError("NeonBackend construction must not connect")
-
-    monkeypatch.setattr("src.neon_storage.psycopg.connect", _unexpected_connect)
-    backend = NeonBackend(
+    monkeypatch.setattr("src.neon_storage.psycopg.connect", _unexpected_migration_connect)
+    backend = RLSNeonBackend(
         "postgresql://pooled.invalid/db",
         migration_database_url="postgresql://direct.invalid/db",
     )
     assert backend.database_url.endswith("/db")
-    assert called is False
 
 
 def test_neon_migrations_are_ordered_and_checksummed():
