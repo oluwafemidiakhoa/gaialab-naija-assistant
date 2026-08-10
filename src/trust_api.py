@@ -18,6 +18,7 @@ from src.neon_observability import failure_snapshot, readiness_report
 from src.operator_auth import require_admin_scope
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 from src.receipt_store import ReceiptConflictError, ReceiptStore
+from src.retention_deletion import RetentionDeletionError, create_signed_deletion_plan
 from src.storage_backend import (
     audit_lifecycle_store,
     neon_backend,
@@ -25,6 +26,7 @@ from src.storage_backend import (
     operator_registry,
     rate_limiter,
     receipt_store,
+    retention_deletion_store,
     signing_key_registry,
     storage_mode,
     tenant_policy_store,
@@ -42,7 +44,7 @@ from src.trust_engine import verify_interaction
 API_VERSION = "v1"
 app = FastAPI(
     title="GaiaLab Naija Trust API",
-    version="0.8.0",
+    version="0.9.0",
     description="Tenant-scoped AI verification with Neon Postgres production storage and SQLite local fallback.",
 )
 
@@ -79,6 +81,10 @@ class AuditPackageRequest(BaseModel):
 class AuditLifecycleEventRequest(BaseModel):
     event_type: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RetentionCancellationRequest(BaseModel):
+    reason: str | None = None
 
 
 def _canonical_json(payload: Any) -> str:
@@ -182,6 +188,13 @@ def _configured_store() -> Any:
 def _configured_lifecycle() -> Any:
     try:
         return audit_lifecycle_store(required=True)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def _configured_deletion_store() -> Any:
+    try:
+        return retention_deletion_store(required=True)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -376,6 +389,7 @@ def health() -> dict[str, Any]:
         "signing_key_registry_configured": neon or bool(os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")),
         "receipt_store_configured": neon or bool(os.getenv("GAIALAB_TRUST_RECEIPT_DB")),
         "audit_lifecycle_configured": (neon and operator_neon) or bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
+        "retention_deletion_configured": (neon and operator_neon) or bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
         "database_failures": failure_snapshot(),
     }
 
@@ -482,6 +496,91 @@ def admin_add_audit_event(
         raise HTTPException(status_code=404, detail="audit export not found") from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/v1/admin/audit/exports/{package_id}/deletion-plans")
+def admin_create_deletion_plan(
+    package_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:delete")
+    signing_key = os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64")
+    if not signing_key:
+        raise HTTPException(status_code=503, detail="retention deletion requires receipt signing")
+    try:
+        registry = _configured_key_registry(required=True)
+        key_probe = sign_receipt({"purpose": "retention-deletion-key-check"}, signing_key)
+        registry.assert_can_sign(key_probe["key_id"])
+        return create_signed_deletion_plan(
+            authorization_store=_configured_deletion_store(),
+            lifecycle_store=_configured_lifecycle(),
+            package_id=package_id,
+            operator_id=identity["operator_id"],
+            signing_key_b64=signing_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="audit export not found") from exc
+    except (RetentionDeletionError, SigningKeyRegistryError, ValueError, TypeError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/v1/admin/audit/deletion-plans/{plan_id}")
+def admin_get_deletion_plan(
+    plan_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:delete")
+    record = _configured_deletion_store().get(plan_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="deletion plan not found")
+    return record
+
+
+@app.post("/v1/admin/audit/deletion-plans/{plan_id}/approvals")
+def admin_approve_deletion_plan(
+    plan_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:delete")
+    try:
+        return _configured_deletion_store().approve(plan_id, identity["operator_id"])
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="deletion plan not found") from exc
+    except RetentionDeletionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/admin/audit/deletion-plans/{plan_id}/cancel")
+def admin_cancel_deletion_plan(
+    plan_id: str,
+    request: RetentionCancellationRequest,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:delete")
+    try:
+        return _configured_deletion_store().cancel(
+            plan_id,
+            identity["operator_id"],
+            reason=request.reason,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="deletion plan not found") from exc
+    except RetentionDeletionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/admin/audit/deletion-plans/{plan_id}/execute")
+def admin_execute_deletion_plan(
+    plan_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:delete")
+    try:
+        return _configured_deletion_store().execute(plan_id, identity["operator_id"])
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="deletion plan not found") from exc
+    except RetentionDeletionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.post("/v1/receipts/verify")
