@@ -12,6 +12,7 @@ import uuid
 
 OPERATOR_ACTION_LOG_VERSION = "gaialab-naija-operator-actions/0.1.0"
 GENESIS_HASH = "0" * 64
+MAX_VERIFY_ACTIONS = 10000
 _FORBIDDEN_METADATA_PARTS = ("password", "secret", "token", "api_key", "private_key", "database_url")
 
 
@@ -46,16 +47,9 @@ def _reject_secret_metadata(value: Any, *, path: str = "metadata") -> None:
 
 
 def build_action(
-    *,
-    operator_id: str,
-    key_id: str | None,
-    action_type: str,
-    target_type: str,
-    target_id: str,
-    metadata: Mapping[str, Any] | None,
-    previous_action_hash: str,
-    action_id: str | None = None,
-    created_at: str | None = None,
+    *, operator_id: str, key_id: str | None, action_type: str, target_type: str,
+    target_id: str, metadata: Mapping[str, Any] | None, previous_action_hash: str,
+    action_id: str | None = None, created_at: str | None = None,
 ) -> dict[str, Any]:
     if not operator_id or not action_type or not target_type:
         raise ValueError("operator_id, action_type, and target_type are required")
@@ -64,209 +58,116 @@ def build_action(
     action_id = action_id or f"opact_{uuid.uuid4().hex}"
     created_at = created_at or datetime.now(timezone.utc).isoformat()
     core = {
-        "version": OPERATOR_ACTION_LOG_VERSION,
-        "action_id": action_id,
-        "operator_id": operator_id,
-        "key_id": key_id,
-        "action_type": action_type,
-        "target_type": target_type,
-        "target_id_sha256": _target_hash(target_id),
-        "metadata": payload,
-        "previous_action_hash": previous_action_hash,
-        "created_at": created_at,
+        "version": OPERATOR_ACTION_LOG_VERSION, "action_id": action_id,
+        "operator_id": operator_id, "key_id": key_id, "action_type": action_type,
+        "target_type": target_type, "target_id_sha256": _target_hash(target_id),
+        "metadata": payload, "previous_action_hash": previous_action_hash, "created_at": created_at,
     }
     return {**core, "action_hash": _sha256(core)}
 
 
-def _verify_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _decode_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    created_at = row["created_at"]
+    return {
+        "event_id": row["event_id"], "version": OPERATOR_ACTION_LOG_VERSION,
+        "action_id": row["action_id"], "operator_id": row["operator_id"], "key_id": row["key_id"],
+        "action_type": row["action_type"], "target_type": row["target_type"],
+        "target_id_sha256": row["target_id_sha256"], "metadata": json.loads(row["metadata_json"]),
+        "previous_action_hash": row["previous_action_hash"], "action_hash": row["action_hash"],
+        "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else str(created_at),
+    }
+
+
+def _verify_rows(rows: list[dict[str, Any]], *, stored_head: str) -> dict[str, Any]:
     previous = GENESIS_HASH
     for index, row in enumerate(rows):
         core = {
-            "version": row["version"],
-            "action_id": row["action_id"],
-            "operator_id": row["operator_id"],
-            "key_id": row.get("key_id"),
-            "action_type": row["action_type"],
-            "target_type": row["target_type"],
-            "target_id_sha256": row["target_id_sha256"],
-            "metadata": row["metadata"],
-            "previous_action_hash": row["previous_action_hash"],
-            "created_at": row["created_at"],
+            "version": row["version"], "action_id": row["action_id"], "operator_id": row["operator_id"],
+            "key_id": row.get("key_id"), "action_type": row["action_type"], "target_type": row["target_type"],
+            "target_id_sha256": row["target_id_sha256"], "metadata": row["metadata"],
+            "previous_action_hash": row["previous_action_hash"], "created_at": row["created_at"],
         }
-        expected = _sha256(core)
         if row["previous_action_hash"] != previous:
             return {"valid": False, "reason": "previous_hash_mismatch", "index": index}
+        expected = _sha256(core)
         if row["action_hash"] != expected:
             return {"valid": False, "reason": "action_hash_mismatch", "index": index}
         previous = row["action_hash"]
+    if previous != stored_head:
+        return {"valid": False, "reason": "stored_head_mismatch", "count": len(rows), "computed_head": previous}
     return {"valid": True, "reason": "operator_action_chain_valid", "count": len(rows), "head": previous}
 
 
 class OperatorActionLog:
-    """SQLite operator action ledger for local development and tests."""
-
     def __init__(self, path: str | Path):
-        self.path = str(path)
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-        self._initialize()
+        self.path = str(path); Path(self.path).parent.mkdir(parents=True, exist_ok=True); self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path)
-        connection.row_factory = sqlite3.Row
-        return connection
+        connection = sqlite3.connect(self.path); connection.row_factory = sqlite3.Row; return connection
 
     def _initialize(self) -> None:
         with self._connect() as connection:
-            connection.execute(
-                "CREATE TABLE IF NOT EXISTS operator_action_log_heads (stream_id TEXT PRIMARY KEY, last_action_hash TEXT NOT NULL)"
-            )
-            connection.execute(
-                "INSERT OR IGNORE INTO operator_action_log_heads (stream_id, last_action_hash) VALUES ('global', ?)",
-                (GENESIS_HASH,),
-            )
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS operator_actions (
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    action_id TEXT NOT NULL UNIQUE,
-                    operator_id TEXT NOT NULL,
-                    key_id TEXT,
-                    action_type TEXT NOT NULL,
-                    target_type TEXT NOT NULL,
-                    target_id_sha256 TEXT NOT NULL,
-                    metadata_json TEXT NOT NULL,
-                    previous_action_hash TEXT NOT NULL,
-                    action_hash TEXT NOT NULL UNIQUE,
-                    created_at TEXT NOT NULL
-                )
-                """
-            )
+            connection.execute("CREATE TABLE IF NOT EXISTS operator_action_log_heads (stream_id TEXT PRIMARY KEY, last_action_hash TEXT NOT NULL)")
+            connection.execute("INSERT OR IGNORE INTO operator_action_log_heads (stream_id, last_action_hash) VALUES ('global', ?)", (GENESIS_HASH,))
+            connection.execute("""CREATE TABLE IF NOT EXISTS operator_actions (
+                event_id INTEGER PRIMARY KEY AUTOINCREMENT, action_id TEXT NOT NULL UNIQUE,
+                operator_id TEXT NOT NULL, key_id TEXT, action_type TEXT NOT NULL, target_type TEXT NOT NULL,
+                target_id_sha256 TEXT NOT NULL, metadata_json TEXT NOT NULL, previous_action_hash TEXT NOT NULL,
+                action_hash TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)""")
 
     def append(self, *, operator_id: str, key_id: str | None, action_type: str, target_type: str, target_id: str, metadata: Mapping[str, Any] | None = None) -> dict[str, Any]:
         connection = self._connect()
         try:
             connection.execute("BEGIN IMMEDIATE")
-            previous = connection.execute(
-                "SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global'"
-            ).fetchone()["last_action_hash"]
-            action = build_action(
-                operator_id=operator_id,
-                key_id=key_id,
-                action_type=action_type,
-                target_type=target_type,
-                target_id=target_id,
-                metadata=metadata,
-                previous_action_hash=previous,
-            )
-            connection.execute(
-                """
-                INSERT INTO operator_actions (
-                    action_id, operator_id, key_id, action_type, target_type,
-                    target_id_sha256, metadata_json, previous_action_hash,
-                    action_hash, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    action["action_id"], action["operator_id"], action["key_id"], action["action_type"],
-                    action["target_type"], action["target_id_sha256"], _canonical_json(action["metadata"]),
-                    action["previous_action_hash"], action["action_hash"], action["created_at"],
-                ),
-            )
-            connection.execute(
-                "UPDATE operator_action_log_heads SET last_action_hash=? WHERE stream_id='global'",
-                (action["action_hash"],),
-            )
-            connection.commit()
-            return action
+            previous = connection.execute("SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global'").fetchone()["last_action_hash"]
+            action = build_action(operator_id=operator_id, key_id=key_id, action_type=action_type, target_type=target_type, target_id=target_id, metadata=metadata, previous_action_hash=previous)
+            connection.execute("""INSERT INTO operator_actions (action_id,operator_id,key_id,action_type,target_type,target_id_sha256,metadata_json,previous_action_hash,action_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                (action["action_id"],action["operator_id"],action["key_id"],action["action_type"],action["target_type"],action["target_id_sha256"],_canonical_json(action["metadata"]),action["previous_action_hash"],action["action_hash"],action["created_at"]))
+            connection.execute("UPDATE operator_action_log_heads SET last_action_hash=? WHERE stream_id='global'", (action["action_hash"],)); connection.commit(); return action
         except Exception:
-            connection.rollback()
-            raise
-        finally:
-            connection.close()
+            connection.rollback(); raise
+        finally: connection.close()
 
     def list(self, *, limit: int = 1000) -> list[dict[str, Any]]:
-        if not 1 <= limit <= 10000:
-            raise ValueError("limit must be between 1 and 10000")
-        with self._connect() as connection:
-            rows = connection.execute(
-                "SELECT * FROM operator_actions ORDER BY event_id LIMIT ?", (limit,)
-            ).fetchall()
-        return [
-            {
-                "event_id": row["event_id"], "version": OPERATOR_ACTION_LOG_VERSION,
-                "action_id": row["action_id"], "operator_id": row["operator_id"], "key_id": row["key_id"],
-                "action_type": row["action_type"], "target_type": row["target_type"],
-                "target_id_sha256": row["target_id_sha256"], "metadata": json.loads(row["metadata_json"]),
-                "previous_action_hash": row["previous_action_hash"], "action_hash": row["action_hash"],
-                "created_at": row["created_at"],
-            }
-            for row in rows
-        ]
+        if not 1 <= limit <= MAX_VERIFY_ACTIONS: raise ValueError("limit must be between 1 and 10000")
+        with self._connect() as connection: rows = connection.execute("SELECT * FROM operator_actions ORDER BY event_id LIMIT ?", (limit,)).fetchall()
+        return [_decode_row(row) for row in rows]
 
     def verify_chain(self) -> dict[str, Any]:
-        return _verify_rows(self.list(limit=10000))
+        with self._connect() as connection:
+            count = int(connection.execute("SELECT COUNT(*) AS count FROM operator_actions").fetchone()["count"])
+            if count > MAX_VERIFY_ACTIONS:
+                return {"valid": False, "reason": "verification_limit_exceeded", "count": count, "limit": MAX_VERIFY_ACTIONS}
+            rows = [_decode_row(row) for row in connection.execute("SELECT * FROM operator_actions ORDER BY event_id").fetchall()]
+            head = connection.execute("SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global'").fetchone()
+        if head is None: return {"valid": False, "reason": "missing_stored_head", "count": count}
+        return _verify_rows(rows, stored_head=head["last_action_hash"])
 
 
 class NeonOperatorActionLog:
-    """Neon operator action ledger using row locking for a single global chain."""
-
-    def __init__(self, backend):
-        self.backend = backend
+    def __init__(self, backend): self.backend = backend
 
     def append(self, *, operator_id: str, key_id: str | None, action_type: str, target_type: str, target_id: str, metadata: Mapping[str, Any] | None = None) -> dict[str, Any]:
         with self.backend.connect() as connection:
-            head = connection.execute(
-                "SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global' FOR UPDATE"
-            ).fetchone()
-            if head is None:
-                raise OperatorActionLogError("operator action log head is missing")
-            action = build_action(
-                operator_id=operator_id,
-                key_id=key_id,
-                action_type=action_type,
-                target_type=target_type,
-                target_id=target_id,
-                metadata=metadata,
-                previous_action_hash=head["last_action_hash"],
-            )
-            connection.execute(
-                """
-                INSERT INTO operator_actions (
-                    action_id, operator_id, key_id, action_type, target_type,
-                    target_id_sha256, metadata_json, previous_action_hash,
-                    action_hash, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::timestamptz)
-                """,
-                (
-                    action["action_id"], action["operator_id"], action["key_id"], action["action_type"],
-                    action["target_type"], action["target_id_sha256"], _canonical_json(action["metadata"]),
-                    action["previous_action_hash"], action["action_hash"], action["created_at"],
-                ),
-            )
-            connection.execute(
-                "UPDATE operator_action_log_heads SET last_action_hash=%s WHERE stream_id='global'",
-                (action["action_hash"],),
-            )
+            head = connection.execute("SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global' FOR UPDATE").fetchone()
+            if head is None: raise OperatorActionLogError("operator action log head is missing")
+            action = build_action(operator_id=operator_id,key_id=key_id,action_type=action_type,target_type=target_type,target_id=target_id,metadata=metadata,previous_action_hash=head["last_action_hash"])
+            connection.execute("""INSERT INTO operator_actions (action_id,operator_id,key_id,action_type,target_type,target_id_sha256,metadata_json,previous_action_hash,action_hash,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::timestamptz)""",
+                (action["action_id"],action["operator_id"],action["key_id"],action["action_type"],action["target_type"],action["target_id_sha256"],_canonical_json(action["metadata"]),action["previous_action_hash"],action["action_hash"],action["created_at"]))
+            connection.execute("UPDATE operator_action_log_heads SET last_action_hash=%s WHERE stream_id='global'", (action["action_hash"],))
         return action
 
     def list(self, *, limit: int = 1000) -> list[dict[str, Any]]:
-        if not 1 <= limit <= 10000:
-            raise ValueError("limit must be between 1 and 10000")
-        with self.backend.connect() as connection:
-            rows = connection.execute(
-                "SELECT * FROM operator_actions ORDER BY event_id LIMIT %s", (limit,)
-            ).fetchall()
-        return [
-            {
-                "event_id": row["event_id"], "version": OPERATOR_ACTION_LOG_VERSION,
-                "action_id": row["action_id"], "operator_id": row["operator_id"], "key_id": row["key_id"],
-                "action_type": row["action_type"], "target_type": row["target_type"],
-                "target_id_sha256": row["target_id_sha256"], "metadata": json.loads(row["metadata_json"]),
-                "previous_action_hash": row["previous_action_hash"], "action_hash": row["action_hash"],
-                "created_at": row["created_at"].isoformat() if hasattr(row["created_at"], "isoformat") else str(row["created_at"]),
-            }
-            for row in rows
-        ]
+        if not 1 <= limit <= MAX_VERIFY_ACTIONS: raise ValueError("limit must be between 1 and 10000")
+        with self.backend.connect() as connection: rows = connection.execute("SELECT * FROM operator_actions ORDER BY event_id LIMIT %s", (limit,)).fetchall()
+        return [_decode_row(row) for row in rows]
 
     def verify_chain(self) -> dict[str, Any]:
-        return _verify_rows(self.list(limit=10000))
+        with self.backend.connect() as connection:
+            count = int(connection.execute("SELECT COUNT(*) AS count FROM operator_actions").fetchone()["count"])
+            if count > MAX_VERIFY_ACTIONS:
+                return {"valid": False, "reason": "verification_limit_exceeded", "count": count, "limit": MAX_VERIFY_ACTIONS}
+            rows = [_decode_row(row) for row in connection.execute("SELECT * FROM operator_actions ORDER BY event_id").fetchall()]
+            head = connection.execute("SELECT last_action_hash FROM operator_action_log_heads WHERE stream_id='global'").fetchone()
+        if head is None: return {"valid": False, "reason": "missing_stored_head", "count": count}
+        return _verify_rows(rows, stored_head=head["last_action_hash"])
