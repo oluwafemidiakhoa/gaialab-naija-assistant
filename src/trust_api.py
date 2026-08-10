@@ -10,19 +10,26 @@ from typing import Any, Mapping
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from src.audit_export import create_audit_package, verify_audit_package
-from src.audit_lifecycle import AuditLifecycleStore
+from src.audit_export import create_audit_package_from_store, verify_audit_package
 from src.claim_extraction import extract_claims
 from src.claim_reconciliation import reconcile_claims
 from src.key_registry import SigningKeyRegistry, SigningKeyRegistryError
-from src.operator_auth import OperatorRegistry, require_admin_scope
-from src.rate_limit import FixedWindowRateLimiter
+from src.operator_auth import require_admin_scope
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 from src.receipt_store import ReceiptConflictError, ReceiptStore
-from src.tenant_auth import TenantRegistry, require_scope
+from src.storage_backend import (
+    audit_lifecycle_store,
+    operator_registry,
+    rate_limiter,
+    receipt_store,
+    signing_key_registry,
+    storage_mode,
+    tenant_policy_store,
+    tenant_registry,
+)
+from src.tenant_auth import require_scope
 from src.tenant_policy import (
     TenantPolicyConfigurationError,
-    TenantPolicyStore,
     default_policy_record,
     enforce_runtime_requirements,
     evaluate_tenant_policy,
@@ -32,8 +39,8 @@ from src.trust_engine import verify_interaction
 API_VERSION = "v1"
 app = FastAPI(
     title="GaiaLab Naija Trust API",
-    version="0.6.0",
-    description="Tenant-scoped AI verification with signed audit evidence and separate operator controls.",
+    version="0.7.0",
+    description="Tenant-scoped AI verification with Neon Postgres production storage and SQLite local fallback.",
 )
 
 
@@ -97,18 +104,18 @@ def _caller_claim_record(claims: Mapping[str, Any]) -> dict[str, Any]:
     return {"extraction_id": _verification_id(core), **core}
 
 
-def _tenant_registry() -> TenantRegistry:
-    path = os.getenv("GAIALAB_TENANT_DB")
-    if not path:
-        raise HTTPException(status_code=503, detail="tenant authentication is not configured")
-    return TenantRegistry(path)
+def _tenant_registry() -> Any:
+    try:
+        return tenant_registry()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-def _operator_registry() -> OperatorRegistry:
-    path = os.getenv("GAIALAB_OPERATOR_DB")
-    if not path:
-        raise HTTPException(status_code=503, detail="operator authentication is not configured")
-    return OperatorRegistry(path)
+def _operator_registry() -> Any:
+    try:
+        return operator_registry()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 def _authenticate(x_api_key: str | None = Header(default=None, alias="X-API-Key")) -> dict[str, Any]:
@@ -146,17 +153,14 @@ def _authorize_admin(identity: dict[str, Any], scope: str) -> None:
 
 
 def _apply_rate_limit(identity: dict[str, Any]) -> None:
-    path = os.getenv("GAIALAB_RATE_LIMIT_DB")
-    if not path:
-        tenant_db = os.getenv("GAIALAB_TENANT_DB")
-        if not tenant_db:
-            raise HTTPException(status_code=503, detail="rate limiting is not configured")
-        path = tenant_db + ".rate.sqlite3"
-    decision = FixedWindowRateLimiter(path).consume(
-        identity["key_id"],
-        limit=int(identity["rate_limit_per_minute"]),
-        window_seconds=60,
-    )
+    try:
+        decision = rate_limiter().consume(
+            identity["key_id"],
+            limit=int(identity["rate_limit_per_minute"]),
+            window_seconds=60,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     if not decision.allowed:
         raise HTTPException(
             status_code=429,
@@ -165,34 +169,30 @@ def _apply_rate_limit(identity: dict[str, Any]) -> None:
         )
 
 
-def _configured_store() -> ReceiptStore:
-    path = os.getenv("GAIALAB_TRUST_RECEIPT_DB")
-    if not path:
-        raise HTTPException(status_code=503, detail="receipt persistence is not configured")
-    return ReceiptStore(path)
+def _configured_store() -> Any:
+    try:
+        return receipt_store(required=True)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-def _configured_lifecycle() -> AuditLifecycleStore:
-    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
-    if not path:
-        raise HTTPException(status_code=503, detail="audit lifecycle storage is not configured")
-    return AuditLifecycleStore(path)
+def _configured_lifecycle() -> Any:
+    try:
+        return audit_lifecycle_store(required=True)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
-def _configured_key_registry(required: bool = False) -> SigningKeyRegistry | None:
-    path = os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")
-    if not path:
-        if required:
-            raise HTTPException(status_code=503, detail="signing key registry is not configured")
-        return None
-    return SigningKeyRegistry(path)
+def _configured_key_registry(required: bool = False) -> Any | None:
+    try:
+        return signing_key_registry(required=required)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 def _active_policy(tenant_id: str) -> dict[str, Any]:
-    path = os.getenv("GAIALAB_TENANT_POLICY_DB")
-    if not path:
-        return default_policy_record(tenant_id)
-    return TenantPolicyStore(path).active_for(tenant_id)
+    store = tenant_policy_store(required=False)
+    return store.active_for(tenant_id) if store else default_policy_record(tenant_id)
 
 
 def verify_payload(
@@ -203,6 +203,8 @@ def verify_payload(
     signing_key_b64: str | None = None,
     receipt_store_path: str | None = None,
     key_registry_path: str | None = None,
+    receipt_store_backend: Any | None = None,
+    key_registry_backend: Any | None = None,
 ) -> dict[str, Any]:
     engine_payload = {
         "user_message": payload.get("user_message", ""),
@@ -234,11 +236,12 @@ def verify_payload(
     extraction_risk = 45 if claim_extraction["required_disposition"] == "REWRITE" else 0
     risk_score = max(engine_result["risk_score"], reconciliation["risk_score"], extraction_risk)
 
+    persistence_configured = bool(receipt_store_backend or receipt_store_path)
     policy_record = dict(tenant_policy or default_policy_record(tenant_id))
     enforce_runtime_requirements(
         policy_record,
         signing_configured=bool(signing_key_b64),
-        persistence_configured=bool(receipt_store_path),
+        persistence_configured=persistence_configured,
     )
     policy_evaluation = evaluate_tenant_policy(
         policy_record,
@@ -270,14 +273,22 @@ def verify_payload(
     verification_receipt = {"verification_id": _verification_id(verification_core), **verification_core}
 
     signature = sign_receipt(verification_receipt, signing_key_b64) if signing_key_b64 else None
-    if signature and key_registry_path:
-        SigningKeyRegistry(key_registry_path).assert_can_sign(signature["key_id"])
+    registry = key_registry_backend
+    if registry is None and key_registry_path:
+        registry = SigningKeyRegistry(key_registry_path)
+    if signature and registry:
+        registry.assert_can_sign(signature["key_id"])
 
     receipt_envelope = {"verification_receipt": verification_receipt, "signature": signature}
     persisted = False
-    if receipt_store_path:
-        persisted = ReceiptStore(receipt_store_path).save(
-            verification_receipt["verification_id"], receipt_envelope, tenant_id=tenant_id
+    store = receipt_store_backend
+    if store is None and receipt_store_path:
+        store = ReceiptStore(receipt_store_path)
+    if store:
+        persisted = store.save(
+            verification_receipt["verification_id"],
+            receipt_envelope,
+            tenant_id=tenant_id,
         )
 
     return {
@@ -304,18 +315,21 @@ def verify_payload(
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    neon = bool(os.getenv("GAIALAB_DATABASE_URL"))
     return {
         "status": "ok",
         "service": "gaialab-naija-trust-api",
         "api_version": API_VERSION,
-        "tenant_auth_configured": bool(os.getenv("GAIALAB_TENANT_DB")),
-        "operator_auth_configured": bool(os.getenv("GAIALAB_OPERATOR_DB")),
-        "tenant_policy_configured": bool(os.getenv("GAIALAB_TENANT_POLICY_DB")),
-        "rate_limit_configured": bool(os.getenv("GAIALAB_RATE_LIMIT_DB") or os.getenv("GAIALAB_TENANT_DB")),
+        "storage_mode": storage_mode(),
+        "neon_configured": neon,
+        "tenant_auth_configured": neon or bool(os.getenv("GAIALAB_TENANT_DB")),
+        "operator_auth_configured": neon or bool(os.getenv("GAIALAB_OPERATOR_DB")),
+        "tenant_policy_configured": neon or bool(os.getenv("GAIALAB_TENANT_POLICY_DB")),
+        "rate_limit_configured": neon or bool(os.getenv("GAIALAB_RATE_LIMIT_DB") or os.getenv("GAIALAB_TENANT_DB")),
         "receipt_signing_configured": bool(os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64")),
-        "signing_key_registry_configured": bool(os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")),
-        "receipt_store_configured": bool(os.getenv("GAIALAB_TRUST_RECEIPT_DB")),
-        "audit_lifecycle_configured": bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
+        "signing_key_registry_configured": neon or bool(os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")),
+        "receipt_store_configured": neon or bool(os.getenv("GAIALAB_TRUST_RECEIPT_DB")),
+        "audit_lifecycle_configured": neon or bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
     }
 
 
@@ -331,8 +345,8 @@ def verify(request: VerifyRequest, identity: dict[str, Any] = Depends(_authentic
             tenant_id=identity["tenant_id"],
             tenant_policy=_active_policy(identity["tenant_id"]),
             signing_key_b64=os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64"),
-            receipt_store_path=os.getenv("GAIALAB_TRUST_RECEIPT_DB"),
-            key_registry_path=os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB"),
+            receipt_store_backend=receipt_store(required=False),
+            key_registry_backend=signing_key_registry(required=False),
         )
     except (
         ValueError,
@@ -348,12 +362,10 @@ def verify(request: VerifyRequest, identity: dict[str, Any] = Depends(_authentic
 def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends(_authenticate)) -> dict[str, Any]:
     _authorize(identity, "audit:export")
     _apply_rate_limit(identity)
-    receipt_db = os.getenv("GAIALAB_TRUST_RECEIPT_DB")
-    if not receipt_db:
-        raise HTTPException(status_code=503, detail="receipt persistence is not configured")
+    store = _configured_store()
     try:
-        package = create_audit_package(
-            receipt_store_path=receipt_db,
+        package = create_audit_package_from_store(
+            receipt_store=store,
             tenant_id=identity["tenant_id"],
             created_from=request.created_from,
             created_to=request.created_to,
@@ -361,16 +373,16 @@ def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends
             limit=request.limit,
             signing_key_b64=os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64"),
         )
-        lifecycle_path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
-        lifecycle = None
-        if lifecycle_path:
-            lifecycle = AuditLifecycleStore(lifecycle_path).register_export(
+        lifecycle = audit_lifecycle_store(required=False)
+        lifecycle_record = None
+        if lifecycle:
+            lifecycle_record = lifecycle.register_export(
                 package,
                 tenant_id=identity["tenant_id"],
                 created_by_key_id=identity["key_id"],
                 retention_until=request.retention_until,
             )
-        return {**package, "lifecycle": lifecycle}
+        return {**package, "lifecycle": lifecycle_record}
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
