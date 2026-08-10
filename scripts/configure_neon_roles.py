@@ -24,6 +24,7 @@ RUNTIME_TABLE_PRIVILEGES = {
     "api_rate_windows": ("SELECT", "INSERT", "UPDATE"),
     "audit_exports": ("SELECT", "INSERT"),
     "audit_export_events": ("SELECT", "INSERT"),
+    "gaialab_schema_migrations": ("SELECT",),
 }
 
 OPERATOR_TABLE_PRIVILEGES = {
@@ -31,6 +32,7 @@ OPERATOR_TABLE_PRIVILEGES = {
     "operator_api_keys": ("SELECT",),
     "audit_exports": ("SELECT", "UPDATE"),
     "audit_export_events": ("SELECT", "INSERT"),
+    "gaialab_schema_migrations": ("SELECT",),
 }
 
 SEQUENCE_USAGE_ROLES = {
@@ -47,10 +49,7 @@ def _required(name: str) -> str:
 
 
 def _ensure_login_role(connection, role_name: str, password: str) -> None:
-    exists = connection.execute(
-        "SELECT 1 FROM pg_roles WHERE rolname = %s",
-        (role_name,),
-    ).fetchone()
+    exists = connection.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role_name,)).fetchone()
     command = "ALTER ROLE" if exists else "CREATE ROLE"
     connection.execute(
         sql.SQL(
@@ -63,11 +62,7 @@ def _ensure_login_role(connection, role_name: str, password: str) -> None:
 def _grant_table_privileges(connection, role_name: str, grants: dict[str, tuple[str, ...]]) -> None:
     connection.execute(sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(sql.Identifier(role_name)))
     for table, privileges in grants.items():
-        connection.execute(
-            sql.SQL("REVOKE ALL ON TABLE {} FROM {}").format(
-                sql.Identifier(table), sql.Identifier(role_name)
-            )
-        )
+        connection.execute(sql.SQL("REVOKE ALL ON TABLE {} FROM {}").format(sql.Identifier(table), sql.Identifier(role_name)))
         connection.execute(
             sql.SQL("GRANT {} ON TABLE {} TO {}").format(
                 sql.SQL(", ").join(sql.SQL(privilege) for privilege in privileges),
@@ -108,11 +103,7 @@ def _assert_safe_role(connection, role_name: str) -> dict[str, object]:
     ).fetchone()
     if row is None:
         raise RuntimeError(f"role {role_name} was not created")
-    unsafe = [
-        field
-        for field in ("rolsuper", "rolcreaterole", "rolcreatedb", "rolbypassrls")
-        if row[field]
-    ]
+    unsafe = [field for field in ("rolsuper", "rolcreaterole", "rolcreatedb", "rolbypassrls") if row[field]]
     if unsafe or not row["rolcanlogin"]:
         raise RuntimeError(f"role {role_name} is unsafe: {unsafe or ['cannot_login']}")
     return dict(row)
@@ -127,16 +118,9 @@ def main() -> None:
 
     with psycopg.connect(migration_url, row_factory=dict_row) as connection:
         database_name = connection.execute("SELECT current_database() AS name").fetchone()["name"]
-        for role_name, password in (
-            (runtime_role, runtime_password),
-            (operator_role, operator_password),
-        ):
+        for role_name, password in ((runtime_role, runtime_password), (operator_role, operator_password)):
             _ensure_login_role(connection, role_name, password)
-            connection.execute(
-                sql.SQL("GRANT CONNECT ON DATABASE {} TO {}").format(
-                    sql.Identifier(database_name), sql.Identifier(role_name)
-                )
-            )
+            connection.execute(sql.SQL("GRANT CONNECT ON DATABASE {} TO {}").format(sql.Identifier(database_name), sql.Identifier(role_name)))
 
         _grant_table_privileges(connection, runtime_role, RUNTIME_TABLE_PRIVILEGES)
         _grant_table_privileges(connection, operator_role, OPERATOR_TABLE_PRIVILEGES)
