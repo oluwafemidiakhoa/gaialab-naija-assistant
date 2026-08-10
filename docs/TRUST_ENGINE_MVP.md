@@ -1,12 +1,12 @@
-# GaiaLab Naija Trust Engine MVP
+# GaiaLab Naija Trust Rail MVP
 
-The Trust Engine is the first implementation of GaiaLab Naija as a model-agnostic AI evidence and assurance layer.
+The Trust Rail is a model-agnostic AI evidence and assurance layer for consequential Nigerian AI interactions.
 
-It does **not** approve governed records, mutate human-review decisions, or publish releases. It evaluates one AI interaction and returns an advisory disposition plus privacy-preserving receipts.
+It does **not** approve governed records, mutate human-review decisions, or publish releases. It evaluates candidate AI output, extracts a narrow set of consequential claims, reconciles them against explicit authoritative state, and returns an advisory disposition plus verifiable receipts.
 
 ## Initial fintech/customer-support wedge
 
-The first deterministic policy pack targets high-cost failure modes already represented in the GaiaLab roadmap:
+The first deterministic policy pack targets:
 
 - unsupported refund or reversal claims
 - unsupported completion timelines
@@ -14,6 +14,7 @@ The first deterministic policy pack targets high-cost failure modes already repr
 - unsupported fees or monetary amounts
 - contradictions against authoritative transaction state
 - unsupported absolute certainty
+- conflicting machine-extracted transaction/account claims
 
 ## Dispositions
 
@@ -25,9 +26,7 @@ The first deterministic policy pack targets high-cost failure modes already repr
 
 These are runtime advisory dispositions, not governance approvals.
 
-## Trust API
-
-Run the API locally:
+## Run the API
 
 ```bash
 uvicorn src.trust_api:app --reload
@@ -43,82 +42,122 @@ Verify a candidate response:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/verify \
-  -H "content-type: application/json" \
+  -H "Content-Type: application/json" \
   -d '{
     "user_message": "What happened to my transfer?",
     "assistant_response": "Your transfer was successful.",
-    "model_name": "provider/model-name",
-    "language": "en-NG",
     "authoritative_state": {"transaction_status": "pending"},
-    "assistant_claims": {"transaction_status": "completed"}
+    "model_name": "provider/model-name"
   }'
 ```
 
-The API returns the strictest disposition produced by two independent deterministic layers:
+`assistant_claims` is optional. When omitted, the service runs deterministic typed extraction for supported high-impact claim classes. Caller-supplied structured claims remain supported for integrations that already produce them.
 
-1. the text-level Trust Engine policy checks
-2. explicit machine-readable claim-to-evidence reconciliation
+## Automatic typed claim extraction
 
-A contradiction in authoritative state is never softened by a less strict text-level result.
+`src/claim_extraction.py` extracts a deliberately narrow and auditable claim set from candidate responses, including:
 
-## Claim reconciliation
+- transaction status
+- refund/reversal status
+- account status
+- NGN fee/amount claims
+- refund ETA expressed in hours/days
+- simple consequential ETA tokens such as `today`/`tomorrow`
 
-Clients may supply explicit `assistant_claims` and `authoritative_state` objects. Gaia compares each claim to authoritative state first and caller-supplied evidence second.
+The extractor records matched text and confidence, flags conflicting claims, handles common negation cases, and is **advisory only**. It is not evidence and cannot approve a response.
 
-Each claim is labeled:
+## Structured reconciliation
+
+`src/claim_reconciliation.py` compares extracted or caller-supplied claims to `authoritative_state` and optional `evidence`.
+
+Outcomes are:
 
 - `SUPPORTED`
 - `UNSUPPORTED`
 - `CONTRADICTED`
 
-Status aliases such as `successful` and `completed` are normalized. NGN monetary formats such as `NGN 250,000.00`, `₦250,000`, and numeric `250000` are normalized before comparison.
+A contradicted high-impact claim drives a `BLOCK`; unsupported high-impact structured claims require at least a rewrite/verification action according to the policy pack.
 
-Unsupported high-impact claims such as transaction status, refunds, account status, amounts, fees, or timelines require at least `REWRITE`. Any explicit contradiction requires `BLOCK`.
+## Signed Trust Receipts
 
-## Receipts
+The API can sign each `verification_receipt` using Ed25519. The private signing key is never stored in the repository.
 
-The response includes:
+Generate a keypair:
 
-- the original Trust Receipt from the deterministic text-policy engine
-- a reconciliation identifier for structured claim checking
-- a verification receipt linking the two results
+```bash
+python scripts/generate_trust_signing_key.py
+```
 
-Receipt identifiers are SHA-256 hashes over canonical verification metadata. They are content-stable for identical verification inputs and results. Raw evidence values are not copied into the original Trust Receipt.
+Set the raw private key returned by the script as a secret:
+
+```bash
+export GAIALAB_TRUST_SIGNING_KEY_B64="..."
+```
+
+When signing is configured, `/v1/verify` returns a `receipt_envelope` containing:
+
+- the deterministic `verification_receipt`
+- Ed25519 signature
+- public verification key
+- `key_id`
+- signature algorithm/version
+
+Verify any envelope without the private key:
+
+```text
+POST /v1/receipts/verify
+```
+
+The verifier rejects tampered receipts, mismatched key IDs, malformed keys, and invalid signatures.
+
+## Append-only receipt persistence
+
+Optional local persistence uses SQLite and write-once semantics.
+
+```bash
+export GAIALAB_TRUST_RECEIPT_DB="data/trust_receipts.sqlite3"
+```
+
+For an existing `verification_id`:
+
+- identical content is treated as idempotent
+- different content raises a conflict instead of overwriting history
+
+Endpoints:
+
+```text
+GET /v1/receipts/{verification_id}
+GET /v1/receipts/{verification_id}/verify
+```
+
+This is the first local persistence implementation. Enterprise deployments should move the same append-only contract to a managed transactional store with tenant isolation, access control, retention policy, and audit export.
+
+## Privacy boundary
+
+The existing Trust Receipt does not embed raw authoritative-state or evidence values. The signed verification receipt links deterministic IDs for the text-policy result, claim extraction, and reconciliation result.
+
+Public verification must not become a mechanism for leaking private customer, transaction, or account data.
 
 ## Synthetic fintech benchmark
 
-A small deliberately synthetic benchmark lives at:
-
-```text
-evaluation/fixtures/naija_fintech_trust_v0.1.jsonl
-```
-
-Run it with:
-
-```bash
-python evaluation/trust_benchmark.py
-```
-
-The initial fixture contains eight targeted examples covering transaction-state contradiction, unsupported refund/timeline promises, supported pending state, unsupported fees, NGN amount normalization, and account status.
-
-These fixtures are **synthetic engineering tests**, not a culturally validated dataset release, not training-eligible data, and not evidence of production model quality. Governed benchmark expansion should use separately reviewed and eligible records under the repository's existing governance workflow.
+The repository contains an initial synthetic engineering benchmark for trust-policy behavior. It is useful for regression coverage but is **not** culturally validated data, not training-eligible data, and not evidence of production model quality.
 
 ## Current limitations
 
-This remains a deterministic MVP, not a complete factuality or regulatory compliance system.
-
-- Text policies are English-first and need Nigerian English/Pidgin expansion.
-- Structured claim reconciliation currently depends on claims supplied by the caller; automatic semantic claim extraction is not included yet.
-- Timeline reconciliation currently performs exact normalized matching rather than temporal reasoning over timestamps and SLAs.
-- No receipt signing, persistence, API authentication, tenant isolation, rate limiting, or enterprise audit store is included yet.
-- No external model provider is required; the engine evaluates candidate outputs from any provider.
+- deterministic extraction is deliberately narrow and English-first
+- Nigerian English/Pidgin claim extraction needs governed expansion
+- free-form semantic claims outside the configured types are not automatically reconciled
+- timelines such as calendar dates and complex SLAs need richer typed normalization
+- signing proves receipt integrity/authenticity for the configured key; it does not prove that upstream authoritative data was truthful
+- SQLite is a local MVP store, not an enterprise multi-tenant audit backend
+- API authentication, rate limiting, tenant boundaries, key rotation registry, and authorization are not included yet
 
 ## Next build sequence
 
-1. Add deterministic/LLM-assisted claim extraction behind a clearly labeled advisory boundary.
-2. Expand the fintech benchmark using governed Nigerian reviewer workflows and hold-out evaluation.
-3. Add signed receipt persistence and public verification.
-4. Add tenant/API-key boundaries and an append-only audit store.
-5. Add a Trust Dashboard showing dispositions, failure classes, model/version comparisons, and receipt lookup.
-6. Add provider adapters so OpenAI, Anthropic, Gemini, Qwen, N-ATLAS, and private models can pass through the same verification boundary.
-7. Keep automated trust findings separate from existing governed human approval and release workflows.
+1. Add key rotation and a public signing-key registry so historical receipts remain verifiable.
+2. Add tenant/API-key boundaries and append-only enterprise audit storage.
+3. Expand deterministic Nigerian English/Pidgin extraction with governed reviewer benchmarks.
+4. Add provider adapters for OpenAI, Anthropic, Gemini, Qwen, N-ATLAS, and private models.
+5. Add a Trust Dashboard for receipt lookup, model comparison, failure classes, and audit exports.
+6. Add optional model-assisted claim extraction behind the deterministic boundary, evaluated against held-out governed benchmarks before use.
+7. Preserve the separation between automated trust findings and governed human approval/release workflows.
