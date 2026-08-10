@@ -1,0 +1,15 @@
+{
+  "name": "example-fintech-strict-v1",
+  "max_automated_risk": 20,
+  "require_human_review_above_ngn": 500000,
+  "block_finding_codes": [
+    "TRANSACTION_STATE_CONTRADICTION",
+    "UNSUPPORTED_ACCOUNT_ACTION"
+  ],
+  "escalate_finding_codes": [
+    "UNSUPPORTED_REFUND_OR_REVERSAL",
+    "UNSUPPORTED_TIMELINE"
+  ],
+  "require_signed_receipts": true,
+  "require_persisted_receipts": true
+}
