@@ -34,7 +34,7 @@ OPERATOR_TABLE_PRIVILEGES = {
 }
 
 SEQUENCE_USAGE_ROLES = {
-    "runtime": ("tenant_policy_events_event_id_seq", "audit_export_events_event_id_seq"),
+    "runtime": ("audit_export_events_event_id_seq",),
     "operator": ("audit_export_events_event_id_seq",),
 }
 
@@ -51,20 +51,13 @@ def _ensure_login_role(connection, role_name: str, password: str) -> None:
         "SELECT 1 FROM pg_roles WHERE rolname = %s",
         (role_name,),
     ).fetchone()
-    if exists:
-        connection.execute(
-            sql.SQL(
-                "ALTER ROLE {} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD %s"
-            ).format(sql.Identifier(role_name)),
-            (password,),
-        )
-    else:
-        connection.execute(
-            sql.SQL(
-                "CREATE ROLE {} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD %s"
-            ).format(sql.Identifier(role_name)),
-            (password,),
-        )
+    command = "ALTER ROLE" if exists else "CREATE ROLE"
+    connection.execute(
+        sql.SQL(
+            f"{command} {{}} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+            "NOINHERIT NOBYPASSRLS PASSWORD {}"
+        ).format(sql.Identifier(role_name), sql.Literal(password))
+    )
 
 
 def _grant_table_privileges(connection, role_name: str, grants: dict[str, tuple[str, ...]]) -> None:
