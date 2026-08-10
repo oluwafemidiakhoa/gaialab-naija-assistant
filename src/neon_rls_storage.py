@@ -1,15 +1,16 @@
-"""RLS-enforcing Neon store wrappers.
+"""Tenant RLS-enforcing Neon store wrappers.
 
-Each protected database operation establishes its own context immediately around
-the query path. This avoids relying on request-thread ContextVar propagation.
+Protected tenant operations establish tenant context immediately around the
+query path. Cross-tenant operator lifecycle access uses a separate database
+login and the base Neon lifecycle store instead of a session-controlled bypass.
 """
 
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
-from src.neon_rls import clear_rls_context, current_rls_context, set_operator_context, set_tenant_context
+from src.neon_rls import clear_rls_context, current_rls_context, set_tenant_context
 from src.neon_storage import NeonAuditLifecycleStore, NeonReceiptStore, NeonTenantPolicyStore
 
 
@@ -21,23 +22,7 @@ def _tenant_scope(tenant_id: str):
         yield
     finally:
         clear_rls_context()
-        if previous["operator_mode"]:
-            set_operator_context()
-        elif previous["tenant_id"]:
-            set_tenant_context(previous["tenant_id"])
-
-
-@contextmanager
-def _operator_scope():
-    previous = current_rls_context()
-    set_operator_context()
-    try:
-        yield
-    finally:
-        clear_rls_context()
-        if previous["operator_mode"]:
-            set_operator_context()
-        elif previous["tenant_id"]:
+        if previous["tenant_id"]:
             set_tenant_context(previous["tenant_id"])
 
 
@@ -116,6 +101,8 @@ class RLSNeonTenantPolicyStore(NeonTenantPolicyStore):
 
 
 class RLSNeonAuditLifecycleStore(NeonAuditLifecycleStore):
+    """Tenant-side audit lifecycle access used when registering an export."""
+
     def register_export(
         self,
         package: Mapping[str, Any],
@@ -131,35 +118,3 @@ class RLSNeonAuditLifecycleStore(NeonAuditLifecycleStore):
                 created_by_key_id=created_by_key_id,
                 retention_until=retention_until,
             )
-
-    def get(self, package_id: str) -> dict[str, Any] | None:
-        with _operator_scope():
-            return super().get(package_id)
-
-    def events(self, package_id: str) -> list[dict[str, Any]]:
-        with _operator_scope():
-            return super().events(package_id)
-
-    def add_event(
-        self,
-        package_id: str,
-        *,
-        actor_type: str,
-        actor_id: str | None,
-        event_type: str,
-        metadata: Mapping[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        if actor_type != "operator":
-            raise PermissionError("RLS lifecycle mutations require operator context")
-        with _operator_scope():
-            return super().add_event(
-                package_id,
-                actor_type=actor_type,
-                actor_id=actor_id,
-                event_type=event_type,
-                metadata=metadata,
-            )
-
-    def retention_status(self, package_id: str, *, now=None) -> dict[str, Any]:
-        with _operator_scope():
-            return super().retention_status(package_id, now=now)
