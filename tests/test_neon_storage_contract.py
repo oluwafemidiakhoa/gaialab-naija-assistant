@@ -1,6 +1,8 @@
-import os
+from pathlib import Path
 
 from src import storage_backend
+from src.neon_migrations import discover_migrations
+from src.neon_storage import NeonBackend
 from src.trust_api import verify_payload
 
 
@@ -31,6 +33,47 @@ def test_storage_mode_selects_neon_when_database_url_is_present(monkeypatch):
         assert backend.migration_database_url == "postgresql://direct.invalid/db"
     finally:
         storage_backend.neon_backend.cache_clear()
+
+
+def test_neon_backend_construction_does_not_connect_or_run_ddl(monkeypatch):
+    called = False
+
+    def _unexpected_connect(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("NeonBackend construction must not connect")
+
+    monkeypatch.setattr("src.neon_storage.psycopg.connect", _unexpected_connect)
+    backend = NeonBackend(
+        "postgresql://pooled.invalid/db",
+        migration_database_url="postgresql://direct.invalid/db",
+    )
+    assert backend.database_url.endswith("/db")
+    assert called is False
+
+
+def test_neon_migrations_are_ordered_and_checksummed():
+    migrations = discover_migrations()
+    assert [migration.version for migration in migrations] == ["0001", "0002"]
+    assert all(len(migration.sha256) == 64 for migration in migrations)
+    assert migrations[0].name == "initial"
+    assert migrations[1].name == "tenant_rls"
+
+
+def test_rls_migration_forces_tenant_isolation():
+    migration = discover_migrations()[1]
+    sql = migration.sql
+    for table in (
+        "verification_receipts",
+        "tenant_policy_versions",
+        "tenant_policy_events",
+        "audit_exports",
+        "audit_export_events",
+    ):
+        assert f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY" in sql
+        assert f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY" in sql
+    assert "current_setting('gaialab.tenant_id', true)" in sql
+    assert "current_setting('gaialab.operator_mode', true)" in sql
 
 
 def test_verify_payload_accepts_injected_production_store():
