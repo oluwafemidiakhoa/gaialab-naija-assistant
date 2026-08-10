@@ -6,12 +6,13 @@ from src.neon_rls import clear_rls_context, current_rls_context, set_tenant_cont
 
 def test_neon_migrations_are_ordered_and_include_role_hardened_rls():
     migrations = discover_migrations()
-    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004"]
+    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004", "0005"]
     assert [migration.name for migration in migrations] == [
         "initial",
         "tenant_rls",
         "database_roles",
         "observability",
+        "retention_deletion",
     ]
 
     rls_sql = migrations[1].sql
@@ -34,6 +35,13 @@ def test_neon_migrations_are_ordered_and_include_role_hardened_rls():
     observability_sql = migrations[3].sql
     assert "gaialab_current_role_kind" in observability_sql
     assert "SECURITY DEFINER" in observability_sql
+
+    retention_sql = migrations[4].sql
+    assert "retention_deletion_plans" in retention_sql
+    assert "retention_deletion_events" in retention_sql
+    assert "created_by_operator_id" in retention_sql
+    assert "actor_operator_id" in retention_sql
+    assert "verification_receipts" not in retention_sql
 
 
 def test_migration_checksums_are_stable_sha256_values():
@@ -70,4 +78,6 @@ def test_role_bootstrap_declares_no_privilege_escalation_flags():
     assert "GAIALAB_RUNTIME_ROLE_PASSWORD" in script
     assert "GAIALAB_OPERATOR_ROLE_PASSWORD" in script
     assert "gaialab_schema_migrations" in script
+    assert "retention_deletion_plans" in script
+    assert "DELETE" in script
     assert "postgresql://" not in script
