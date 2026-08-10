@@ -54,7 +54,7 @@ def main() -> None:
     disable_tenant_key = sub.add_parser("disable-api-key"); disable_tenant_key.add_argument("--key-id", required=True)
     create_operator = sub.add_parser("create-operator"); create_operator.add_argument("--name", required=True); create_operator.add_argument("--operator-id")
     issue_admin_key = sub.add_parser("issue-admin-key"); issue_admin_key.add_argument("--operator-id", required=True); issue_admin_key.add_argument("--label")
-    issue_admin_key.add_argument("--scope", action="append", dest="scopes", choices=["audit:lifecycle", "audit:delete", "tenants:manage", "policies:manage", "signing-keys:manage"])
+    issue_admin_key.add_argument("--scope", action="append", dest="scopes", choices=["audit:lifecycle", "audit:delete", "dashboard:read", "tenants:manage", "policies:manage", "signing-keys:manage"])
     disable_admin_key = sub.add_parser("disable-admin-key"); disable_admin_key.add_argument("--key-id", required=True)
     create_policy = sub.add_parser("create-policy"); create_policy.add_argument("--tenant-id", required=True); create_policy.add_argument("--file", required=True); create_policy.add_argument("--no-activate", action="store_true"); create_policy.add_argument("--note")
     activate_policy = sub.add_parser("activate-policy"); activate_policy.add_argument("--tenant-id", required=True); activate_policy.add_argument("--policy-id", required=True); activate_policy.add_argument("--note")
