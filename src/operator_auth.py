@@ -18,6 +18,7 @@ ADMIN_KEY_PREFIX = "gaia_admin_"
 ADMIN_SCOPES = frozenset(
     {
         "audit:lifecycle",
+        "audit:delete",
         "tenants:manage",
         "policies:manage",
         "signing-keys:manage",
@@ -35,6 +36,8 @@ def _hash_key(api_key: str) -> str:
 
 
 def _normalize_scopes(scopes: Iterable[str] | None) -> tuple[str, ...]:
+    if isinstance(scopes, str):
+        raise TypeError("admin scopes must be an iterable of scope strings, not a single string")
     values = tuple(sorted(set(scopes or DEFAULT_ADMIN_SCOPES)))
     unknown = sorted(set(values) - ADMIN_SCOPES)
     if unknown:
