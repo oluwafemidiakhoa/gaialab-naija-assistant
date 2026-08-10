@@ -1,4 +1,4 @@
-"""Operator CLI for GaiaLab tenant, policy, API-key, and signing-key lifecycle."""
+"""Operator CLI for GaiaLab tenant, policy, API-key, admin, and signing-key lifecycle."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from src.key_registry import SigningKeyRegistry
+from src.operator_auth import OperatorRegistry
 from src.tenant_auth import TenantRegistry
 from src.tenant_policy import TenantPolicyStore
 
@@ -40,6 +41,27 @@ def main() -> None:
     disable_key = sub.add_parser("disable-api-key")
     disable_key.add_argument("--db", required=True)
     disable_key.add_argument("--key-id", required=True)
+
+    create_operator = sub.add_parser("create-operator")
+    create_operator.add_argument("--db", required=True)
+    create_operator.add_argument("--name", required=True)
+    create_operator.add_argument("--operator-id")
+
+    issue_admin = sub.add_parser("issue-admin-key")
+    issue_admin.add_argument("--db", required=True)
+    issue_admin.add_argument("--operator-id", required=True)
+    issue_admin.add_argument("--label")
+    issue_admin.add_argument(
+        "--scope",
+        action="append",
+        dest="scopes",
+        choices=["audit:lifecycle", "tenants:manage", "policies:manage", "signing-keys:manage"],
+        help="Repeat to grant multiple admin scopes. Defaults to audit:lifecycle.",
+    )
+
+    disable_admin = sub.add_parser("disable-admin-key")
+    disable_admin.add_argument("--db", required=True)
+    disable_admin.add_argument("--key-id", required=True)
 
     create_policy = sub.add_parser("create-policy")
     create_policy.add_argument("--db", required=True)
@@ -85,6 +107,17 @@ def main() -> None:
         )
     elif args.command == "disable-api-key":
         TenantRegistry(args.db).disable_api_key(args.key_id)
+        result = {"disabled": True, "key_id": args.key_id}
+    elif args.command == "create-operator":
+        result = OperatorRegistry(args.db).create_operator(args.name, operator_id=args.operator_id)
+    elif args.command == "issue-admin-key":
+        result = OperatorRegistry(args.db).issue_admin_key(
+            args.operator_id,
+            label=args.label,
+            scopes=args.scopes,
+        )
+    elif args.command == "disable-admin-key":
+        OperatorRegistry(args.db).disable_admin_key(args.key_id)
         result = {"disabled": True, "key_id": args.key_id}
     elif args.command == "create-policy":
         result = TenantPolicyStore(args.db).create_version(
