@@ -14,6 +14,12 @@ class _FailureCounters:
 
 _lock = threading.Lock(); _counters = _FailureCounters()
 
+def reset_failure_counters() -> None:
+    """Reset in-process aggregate counters for deterministic tests/diagnostics."""
+    global _counters
+    with _lock:
+        _counters = _FailureCounters()
+
 def record_database_failure(kind: str) -> None:
     with _lock:
         if kind == "connection": _counters.connection_failures += 1
