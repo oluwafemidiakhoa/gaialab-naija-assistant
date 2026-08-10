@@ -1,0 +1,56 @@
+name: Naija Language Benchmarks
+
+on:
+  pull_request:
+    paths:
+      - "src/claim_extraction.py"
+      - "src/claim_reconciliation.py"
+      - "src/trust_api.py"
+      - "src/language_governance.py"
+      - "src/review_workflow.py"
+      - "src/training_eligibility.py"
+      - "scripts/stage_naija_language_review.py"
+      - "evaluation/claim_extraction_benchmark.py"
+      - "evaluation/fixtures/naija_pidgin_*.jsonl"
+      - "tests/test_naija_*.py"
+      - "tests/test_language_governance.py"
+      - "tests/test_review_workflow.py"
+      - "tests/test_training_eligibility.py"
+      - "docs/NAIJA_LANGUAGE_BENCHMARKS.md"
+      - ".github/workflows/naija-language-benchmarks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: >-
+          python -m pip install
+          "pytest>=8,<10"
+          "fastapi>=0.115,<1"
+          "pydantic>=2,<3"
+          "cryptography>=44,<47"
+          "httpx>=0.27,<1"
+          "psycopg[binary]>=3.2,<4"
+      - name: Run Nigerian English, Pidgin, and governance tests
+        run: >-
+          python -m pytest -q
+          tests/test_naija_claim_extraction.py
+          tests/test_naija_pidgin_trust.py
+          tests/test_language_governance.py
+          tests/test_review_workflow.py
+          tests/test_training_eligibility.py
+      - name: Run exact-match extraction benchmark
+        run: python evaluation/claim_extraction_benchmark.py
+      - name: Validate draft review staging
+        run: >-
+          python scripts/stage_naija_language_review.py
+          --output "${RUNNER_TEMP}/naija-language-review.jsonl"

@@ -1,0 +1,71 @@
+name: Neon Trust Rail
+
+on:
+  pull_request:
+    paths:
+      - "migrations/neon/**"
+      - "src/neon_*.py"
+      - "src/storage_backend.py"
+      - "src/retention_deletion.py"
+      - "src/operator_action_log.py"
+      - "src/audited_admin_storage.py"
+      - "src/operator_auth.py"
+      - "src/trust_api.py"
+      - "scripts/configure_neon_roles.py"
+      - "scripts/init_neon_storage.py"
+      - "scripts/manage_neon_trust.py"
+      - "tests/test_neon_*.py"
+      - "tests/test_retention_deletion.py"
+      - "tests/test_operator_action_log.py"
+      - "tests/test_audited_admin_storage.py"
+      - ".github/workflows/neon-trust-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: >-
+          python -m pip install
+          "pytest>=8,<10"
+          "psycopg[binary]>=3.2,<4"
+          "fastapi>=0.115,<1"
+          "pydantic>=2,<3"
+          "cryptography>=44,<47"
+          "httpx>=0.27,<1"
+      - name: Run Neon security contracts
+        run: >-
+          python -m pytest -q
+          tests/test_neon_migrations_rls.py
+          tests/test_neon_storage_contract.py
+          tests/test_retention_deletion.py
+          tests/test_operator_action_log.py
+          tests/test_audited_admin_storage.py
+
+  live-neon:
+    runs-on: ubuntu-latest
+    env:
+      NEON_TEST_MIGRATION_DATABASE_URL: ${{ secrets.NEON_TEST_MIGRATION_DATABASE_URL }}
+      NEON_TEST_RUNTIME_DATABASE_URL: ${{ secrets.NEON_TEST_RUNTIME_DATABASE_URL }}
+      NEON_TEST_OPERATOR_DATABASE_URL: ${{ secrets.NEON_TEST_OPERATOR_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install live-test dependencies
+        run: python -m pip install "pytest>=8,<10" "psycopg[binary]>=3.2,<4"
+      - name: Run live Neon migration and RLS checks
+        if: ${{ env.NEON_TEST_MIGRATION_DATABASE_URL != '' && env.NEON_TEST_RUNTIME_DATABASE_URL != '' && env.NEON_TEST_OPERATOR_DATABASE_URL != '' }}
+        run: python -m pytest -q tests/test_neon_live_integration.py
+      - name: Explain skipped live checks
+        if: ${{ env.NEON_TEST_MIGRATION_DATABASE_URL == '' || env.NEON_TEST_RUNTIME_DATABASE_URL == '' || env.NEON_TEST_OPERATOR_DATABASE_URL == '' }}
+        run: echo "Live Neon checks skipped because dedicated test database secrets are not configured."

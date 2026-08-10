@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 from src.dataset_management import example_sha256
+from src.language_governance import cultural_validation_is_current, requires_cultural_validation
 
 ALLOWED_LICENSES = {"CC0-1.0", "CC-BY-4.0", "MIT", "Apache-2.0"}
 DOMAIN_REVIEW_CATEGORIES = {"healthcare", "banking", "government_services"}
@@ -60,6 +61,8 @@ def assess_eligibility(
         or record.get("domain_review_timestamp")
     ):
         reasons.append("domain_review_incomplete")
+    if requires_cultural_validation(record) and not cultural_validation_is_current(record):
+        reasons.append("cultural_validation_incomplete")
     source = str(record.get("source", "")).strip()
     if not source or source.casefold() in {"unknown", "provenance_unknown"}:
         reasons.append("provenance_incomplete")

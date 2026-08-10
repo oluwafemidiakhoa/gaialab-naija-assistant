@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from streamlit.testing.v1 import AppTest
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def test_public_verification_app_is_read_only_and_renders() -> None:
-    app = AppTest.from_file("app/dataset_verify.py", default_timeout=10)
+    app = AppTest.from_file(ROOT / "app/dataset_verify.py", default_timeout=10)
 
     app.run()
 
@@ -22,7 +27,7 @@ def test_public_verification_app_is_read_only_and_renders() -> None:
 
 def test_integrated_streamlit_verification_page_renders() -> None:
     app = AppTest.from_file(
-        "app/pages/1_Release_Verification.py", default_timeout=10
+        ROOT / "app/pages/1_Release_Verification.py", default_timeout=10
     )
 
     app.run()

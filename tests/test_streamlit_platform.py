@@ -4,6 +4,9 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 @pytest.mark.parametrize("path", [
     "app/Home.py",
     "app/pages/0_Dataset_Review.py",
@@ -17,7 +20,7 @@ from streamlit.testing.v1 import AppTest
     "app/pages/6_Training_Eligibility.py",
 ])
 def test_integrated_page_renders(path):
-    app = AppTest.from_file(path, default_timeout=15)
+    app = AppTest.from_file(ROOT / path, default_timeout=15)
     app.run()
     assert not app.exception, path
 
@@ -29,7 +32,7 @@ def test_windows_paths_are_pathlib_compatible():
 
 def test_unified_review_recovers_from_stale_filtered_selection():
     app = AppTest.from_file(
-        "app/pages/1_Unified_Review.py",
+        ROOT / "app/pages/1_Unified_Review.py",
         default_timeout=15,
     )
     app.run()
@@ -46,11 +49,11 @@ def test_unified_review_recovers_from_stale_filtered_selection():
 def test_pages_do_not_depend_on_app_being_a_package():
     """Streamlit can reserve ``app`` for app/app.py on Windows."""
     for path in (
-        Path("app/pages/0_Dataset_Review.py"),
-        Path("app/pages/1_Release_Verification.py"),
-        Path("app/pages/1_Unified_Review.py"),
+        ROOT / "app/pages/0_Dataset_Review.py",
+        ROOT / "app/pages/1_Release_Verification.py",
+        ROOT / "app/pages/1_Unified_Review.py",
     ):
         assert "from app." not in path.read_text(encoding="utf-8")
-    assert "from app." not in Path(
-        "app/unified_review.py"
+    assert "from app." not in (
+        ROOT / "app/unified_review.py"
     ).read_text(encoding="utf-8")

@@ -18,10 +18,12 @@ from src.dataset_management import (
     utc_now,
     validate_record,
 )
+from src.language_governance import requires_cultural_validation
 
 REVIEWER_ROLES = {
     "reviewer", "technical_reviewer", "domain_reviewer", "release_manager"
 }
+CULTURAL_REVIEWER_ROLES = {"domain_reviewer", "release_manager"}
 DOMAIN_REVIEW_CATEGORIES = {"healthcare", "banking", "government_services"}
 FINAL_STATES = {"rejected", "superseded"}
 TRANSITIONS = {
@@ -60,6 +62,20 @@ class ReviewEvent:
     event_sha256: str
 
 
+@dataclass(frozen=True)
+class CulturalReviewEvent:
+    cultural_review_event_id: str
+    record_id: str
+    record_sha256: str
+    revision: int
+    reviewer_identifier: str
+    reviewer_role: str
+    review_timestamp: str
+    culturally_validated: bool
+    review_notes: str
+    event_sha256: str
+
+
 def _hash(value: dict[str, Any]) -> str:
     return hashlib.sha256(json.dumps(
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
@@ -70,12 +86,81 @@ def _event(payload: dict[str, Any]) -> ReviewEvent:
     return ReviewEvent(**payload, event_sha256=_hash(payload))
 
 
+def _cultural_event(payload: dict[str, Any]) -> CulturalReviewEvent:
+    return CulturalReviewEvent(**payload, event_sha256=_hash(payload))
+
+
 def review_history(registry_dir: Path, version: str, record_id: str) -> list[dict[str, Any]]:
     path = review_log_path(registry_dir, version)
     if not path.exists():
         return []
     from src.dataset_management import read_jsonl
     return [event for event in read_jsonl(path) if event.get("id") == record_id]
+
+
+def record_cultural_validation(
+    registry_dir: Path,
+    version: str,
+    record_id: str,
+    reviewer_identifier: str,
+    reviewer_role: str,
+    *,
+    culturally_validated: bool,
+    review_notes: str = "",
+    now: Callable[[], str] = utc_now,
+) -> CulturalReviewEvent:
+    """Append a Nigerian cultural-review decision bound to exact record content."""
+    if reviewer_role not in CULTURAL_REVIEWER_ROLES:
+        raise DatasetManagementError("cultural validation requires a domain reviewer or release manager")
+    if not reviewer_identifier.strip():
+        raise DatasetManagementError("reviewer_identifier is required")
+    records = {r["id"]: r for r in review_state(registry_dir, version)}
+    current = records.get(record_id)
+    if current is None:
+        raise DatasetManagementError(f"unknown record: {record_id}")
+    if not requires_cultural_validation(current):
+        raise DatasetManagementError("record is not marked for Nigerian cultural validation")
+
+    timestamp = now()
+    record_hash = current["example_sha256"]
+    updated = dict(current)
+    updated.update(
+        culturally_validated=bool(culturally_validated),
+        cultural_review_completed=True,
+        cultural_reviewer=reviewer_identifier.strip(),
+        cultural_review_timestamp=timestamp,
+        cultural_review_notes=review_notes.strip(),
+        cultural_review_record_sha256=record_hash,
+        governance_status=(
+            "culturally_validated_pending_standard_approval"
+            if culturally_validated
+            else "cultural_review_rejected"
+        ),
+    )
+    payload = {
+        "cultural_review_event_id": str(uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            f"cultural:{version}:{record_id}:{current['revision']}:{record_hash}:{timestamp}",
+        )),
+        "record_id": record_id,
+        "record_sha256": record_hash,
+        "revision": int(current["revision"]),
+        "reviewer_identifier": reviewer_identifier.strip(),
+        "reviewer_role": reviewer_role,
+        "review_timestamp": timestamp,
+        "culturally_validated": bool(culturally_validated),
+        "review_notes": review_notes.strip(),
+    }
+    event = _cultural_event(payload)
+    append_jsonl(review_log_path(registry_dir, version), {
+        "event": "cultural_validation",
+        "id": record_id,
+        "version": version,
+        "timestamp": timestamp,
+        "record": updated,
+        "cultural_review_event": asdict(event),
+    })
+    return event
 
 
 def transition_review(
@@ -194,6 +279,16 @@ def create_revision(
         approved_revision=None,
         approved_record_sha256="",
     )
+    if requires_cultural_validation(updated):
+        updated.update(
+            culturally_validated=False,
+            cultural_review_completed=False,
+            cultural_reviewer="",
+            cultural_review_timestamp="",
+            cultural_review_notes="",
+            cultural_review_record_sha256="",
+            governance_status="awaiting_nigerian_human_cultural_review",
+        )
     updated["example_sha256"] = example_sha256(updated)
     append_jsonl(review_log_path(registry_dir, version), {
         "event": "revision_created",
