@@ -27,6 +27,7 @@ from src.neon_storage import (
 from src.operator_auth import OperatorRegistry
 from src.rate_limit import FixedWindowRateLimiter
 from src.receipt_store import ReceiptStore
+from src.retention_deletion import NeonRetentionDeletionStore, RetentionDeletionStore
 from src.tenant_auth import TenantRegistry
 from src.tenant_policy import TenantPolicyStore
 
@@ -159,3 +160,25 @@ def audit_lifecycle_store(*, required: bool = True) -> Any | None:
             raise RuntimeError("audit lifecycle registry is not configured")
         return None
     return AuditLifecycleStore(path)
+
+
+def retention_deletion_store(*, required: bool = True) -> Any | None:
+    """Return the destructive-retention authorization store.
+
+    Neon deletion is operator-role only. SQLite uses the same audit lifecycle DB
+    so local execution can atomically delete lifecycle rows while preserving the
+    independent retention authorization ledger.
+    """
+    if neon_backend() is not None:
+        backend = operator_neon_backend()
+        if backend is None:
+            if required:
+                raise RuntimeError("Neon retention deletion requires GAIALAB_OPERATOR_DATABASE_URL")
+            return None
+        return NeonRetentionDeletionStore(backend)
+    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
+    if not path:
+        if required:
+            raise RuntimeError("retention deletion requires GAIALAB_AUDIT_LIFECYCLE_DB")
+        return None
+    return RetentionDeletionStore(path)
