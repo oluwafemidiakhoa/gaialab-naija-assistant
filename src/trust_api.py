@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from src.audit_export import create_audit_package, verify_audit_package
 from src.claim_extraction import extract_claims
 from src.claim_reconciliation import reconcile_claims
 from src.key_registry import SigningKeyRegistry, SigningKeyRegistryError
@@ -29,8 +30,8 @@ from src.trust_engine import verify_interaction
 API_VERSION = "v1"
 app = FastAPI(
     title="GaiaLab Naija Trust API",
-    version="0.4.0",
-    description="Tenant-scoped, policy-controlled verification for consequential AI interactions.",
+    version="0.5.0",
+    description="Tenant-scoped, policy-controlled verification and audit evidence for consequential AI interactions.",
 )
 
 
@@ -49,6 +50,17 @@ class VerifyRequest(BaseModel):
 class ReceiptEnvelopeRequest(BaseModel):
     verification_receipt: dict[str, Any]
     signature: dict[str, Any]
+
+
+class AuditExportRequest(BaseModel):
+    created_from: str | None = None
+    created_to: str | None = None
+    dispositions: list[str] | None = None
+    limit: int = Field(default=10000, ge=1, le=10000)
+
+
+class AuditPackageRequest(BaseModel):
+    package: dict[str, Any]
 
 
 def _canonical_json(payload: Any) -> str:
@@ -202,6 +214,10 @@ def verify_payload(
     verification_core = {
         "api_version": API_VERSION,
         "tenant_id": tenant_id,
+        "model_name": str(payload.get("model_name", "unknown")),
+        "model_version": payload.get("model_version"),
+        "language": payload.get("language"),
+        "finding_codes": [str(item.get("code")) for item in engine_result["findings"] if item.get("code")],
         "tenant_policy_id": policy_evaluation["policy_id"],
         "tenant_policy_hash": policy_evaluation["policy_hash"],
         "tenant_policy_evaluation_id": policy_evaluation["evaluation_id"],
@@ -284,6 +300,32 @@ def verify(request: VerifyRequest, identity: dict[str, Any] = Depends(_authentic
         TenantPolicyConfigurationError,
     ) as exc:
         raise HTTPException(status_code=503, detail=f"trust verification configuration failed: {exc}") from exc
+
+
+@app.post("/v1/audit/exports")
+def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends(_authenticate)) -> dict[str, Any]:
+    _authorize(identity, "audit:export")
+    _apply_rate_limit(identity)
+    receipt_db = os.getenv("GAIALAB_TRUST_RECEIPT_DB")
+    if not receipt_db:
+        raise HTTPException(status_code=503, detail="receipt persistence is not configured")
+    try:
+        return create_audit_package(
+            receipt_store_path=receipt_db,
+            tenant_id=identity["tenant_id"],
+            created_from=request.created_from,
+            created_to=request.created_to,
+            dispositions=request.dispositions,
+            limit=request.limit,
+            signing_key_b64=os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/v1/audit/verify")
+def verify_audit(request: AuditPackageRequest) -> dict[str, Any]:
+    return verify_audit_package(request.package)
 
 
 @app.post("/v1/receipts/verify")
