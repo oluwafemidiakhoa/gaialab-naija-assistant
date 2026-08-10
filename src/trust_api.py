@@ -11,9 +11,11 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from src.audit_export import create_audit_package, verify_audit_package
+from src.audit_lifecycle import AuditLifecycleStore
 from src.claim_extraction import extract_claims
 from src.claim_reconciliation import reconcile_claims
 from src.key_registry import SigningKeyRegistry, SigningKeyRegistryError
+from src.operator_auth import OperatorRegistry, require_admin_scope
 from src.rate_limit import FixedWindowRateLimiter
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 from src.receipt_store import ReceiptConflictError, ReceiptStore
@@ -30,8 +32,8 @@ from src.trust_engine import verify_interaction
 API_VERSION = "v1"
 app = FastAPI(
     title="GaiaLab Naija Trust API",
-    version="0.5.0",
-    description="Tenant-scoped, policy-controlled verification and audit evidence for consequential AI interactions.",
+    version="0.6.0",
+    description="Tenant-scoped AI verification with signed audit evidence and separate operator controls.",
 )
 
 
@@ -57,10 +59,16 @@ class AuditExportRequest(BaseModel):
     created_to: str | None = None
     dispositions: list[str] | None = None
     limit: int = Field(default=10000, ge=1, le=10000)
+    retention_until: str | None = None
 
 
 class AuditPackageRequest(BaseModel):
     package: dict[str, Any]
+
+
+class AuditLifecycleEventRequest(BaseModel):
+    event_type: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 def _canonical_json(payload: Any) -> str:
@@ -96,6 +104,13 @@ def _tenant_registry() -> TenantRegistry:
     return TenantRegistry(path)
 
 
+def _operator_registry() -> OperatorRegistry:
+    path = os.getenv("GAIALAB_OPERATOR_DB")
+    if not path:
+        raise HTTPException(status_code=503, detail="operator authentication is not configured")
+    return OperatorRegistry(path)
+
+
 def _authenticate(x_api_key: str | None = Header(default=None, alias="X-API-Key")) -> dict[str, Any]:
     if not x_api_key:
         raise HTTPException(status_code=401, detail="missing X-API-Key")
@@ -105,9 +120,27 @@ def _authenticate(x_api_key: str | None = Header(default=None, alias="X-API-Key"
     return identity
 
 
+def _authenticate_admin(
+    x_admin_api_key: str | None = Header(default=None, alias="X-Admin-API-Key"),
+) -> dict[str, Any]:
+    if not x_admin_api_key:
+        raise HTTPException(status_code=401, detail="missing X-Admin-API-Key")
+    identity = _operator_registry().authenticate(x_admin_api_key)
+    if identity is None:
+        raise HTTPException(status_code=401, detail="invalid or disabled admin API key")
+    return identity
+
+
 def _authorize(identity: dict[str, Any], scope: str) -> None:
     try:
         require_scope(identity, scope)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+def _authorize_admin(identity: dict[str, Any], scope: str) -> None:
+    try:
+        require_admin_scope(identity, scope)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
@@ -137,6 +170,13 @@ def _configured_store() -> ReceiptStore:
     if not path:
         raise HTTPException(status_code=503, detail="receipt persistence is not configured")
     return ReceiptStore(path)
+
+
+def _configured_lifecycle() -> AuditLifecycleStore:
+    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
+    if not path:
+        raise HTTPException(status_code=503, detail="audit lifecycle storage is not configured")
+    return AuditLifecycleStore(path)
 
 
 def _configured_key_registry(required: bool = False) -> SigningKeyRegistry | None:
@@ -269,11 +309,13 @@ def health() -> dict[str, Any]:
         "service": "gaialab-naija-trust-api",
         "api_version": API_VERSION,
         "tenant_auth_configured": bool(os.getenv("GAIALAB_TENANT_DB")),
+        "operator_auth_configured": bool(os.getenv("GAIALAB_OPERATOR_DB")),
         "tenant_policy_configured": bool(os.getenv("GAIALAB_TENANT_POLICY_DB")),
         "rate_limit_configured": bool(os.getenv("GAIALAB_RATE_LIMIT_DB") or os.getenv("GAIALAB_TENANT_DB")),
         "receipt_signing_configured": bool(os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64")),
         "signing_key_registry_configured": bool(os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")),
         "receipt_store_configured": bool(os.getenv("GAIALAB_TRUST_RECEIPT_DB")),
+        "audit_lifecycle_configured": bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
     }
 
 
@@ -310,7 +352,7 @@ def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends
     if not receipt_db:
         raise HTTPException(status_code=503, detail="receipt persistence is not configured")
     try:
-        return create_audit_package(
+        package = create_audit_package(
             receipt_store_path=receipt_db,
             tenant_id=identity["tenant_id"],
             created_from=request.created_from,
@@ -319,6 +361,16 @@ def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends
             limit=request.limit,
             signing_key_b64=os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64"),
         )
+        lifecycle_path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
+        lifecycle = None
+        if lifecycle_path:
+            lifecycle = AuditLifecycleStore(lifecycle_path).register_export(
+                package,
+                tenant_id=identity["tenant_id"],
+                created_by_key_id=identity["key_id"],
+                retention_until=request.retention_until,
+            )
+        return {**package, "lifecycle": lifecycle}
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -326,6 +378,51 @@ def export_audit(request: AuditExportRequest, identity: dict[str, Any] = Depends
 @app.post("/v1/audit/verify")
 def verify_audit(request: AuditPackageRequest) -> dict[str, Any]:
     return verify_audit_package(request.package)
+
+
+@app.get("/v1/admin/audit/exports/{package_id}")
+def admin_get_audit_export(
+    package_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:lifecycle")
+    record = _configured_lifecycle().get(package_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="audit export not found")
+    return record
+
+
+@app.get("/v1/admin/audit/exports/{package_id}/retention")
+def admin_get_retention(
+    package_id: str,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:lifecycle")
+    try:
+        return _configured_lifecycle().retention_status(package_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="audit export not found") from exc
+
+
+@app.post("/v1/admin/audit/exports/{package_id}/events")
+def admin_add_audit_event(
+    package_id: str,
+    request: AuditLifecycleEventRequest,
+    identity: dict[str, Any] = Depends(_authenticate_admin),
+) -> dict[str, Any]:
+    _authorize_admin(identity, "audit:lifecycle")
+    try:
+        return _configured_lifecycle().add_event(
+            package_id,
+            actor_type="operator",
+            actor_id=identity["operator_id"],
+            event_type=request.event_type,
+            metadata=request.metadata,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="audit export not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/v1/receipts/verify")
