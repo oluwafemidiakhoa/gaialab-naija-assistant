@@ -1,8 +1,8 @@
 """Runtime storage selection for GaiaLab Naija Trust Rail.
 
 If GAIALAB_DATABASE_URL is configured, all production persistence uses the shared
-Neon Postgres backend with request-scoped RLS context. Otherwise existing SQLite
-stores remain available for local development and tests.
+Neon Postgres backend with RLS-enforcing store wrappers. Otherwise existing
+SQLite stores remain available for local development and tests.
 """
 
 from __future__ import annotations
@@ -14,13 +14,12 @@ from typing import Any
 from src.audit_lifecycle import AuditLifecycleStore
 from src.key_registry import SigningKeyRegistry
 from src.neon_rls import RLSNeonBackend, RLSNeonOperatorRegistry, RLSNeonTenantRegistry
-from src.neon_storage import (
-    NeonAuditLifecycleStore,
-    NeonRateLimiter,
-    NeonReceiptStore,
-    NeonSigningKeyRegistry,
-    NeonTenantPolicyStore,
+from src.neon_rls_storage import (
+    RLSNeonAuditLifecycleStore,
+    RLSNeonReceiptStore,
+    RLSNeonTenantPolicyStore,
 )
+from src.neon_storage import NeonRateLimiter, NeonSigningKeyRegistry
 from src.operator_auth import OperatorRegistry
 from src.rate_limit import FixedWindowRateLimiter
 from src.receipt_store import ReceiptStore
@@ -80,7 +79,7 @@ def signing_key_registry(*, required: bool = False) -> Any | None:
 def tenant_policy_store(*, required: bool = False) -> Any | None:
     backend = neon_backend()
     if backend:
-        return NeonTenantPolicyStore(backend)
+        return RLSNeonTenantPolicyStore(backend)
     path = os.getenv("GAIALAB_TENANT_POLICY_DB")
     if not path:
         if required:
@@ -92,7 +91,7 @@ def tenant_policy_store(*, required: bool = False) -> Any | None:
 def receipt_store(*, required: bool = True) -> Any | None:
     backend = neon_backend()
     if backend:
-        return NeonReceiptStore(backend)
+        return RLSNeonReceiptStore(backend)
     path = os.getenv("GAIALAB_TRUST_RECEIPT_DB")
     if not path:
         if required:
@@ -117,7 +116,7 @@ def rate_limiter() -> Any:
 def audit_lifecycle_store(*, required: bool = True) -> Any | None:
     backend = neon_backend()
     if backend:
-        return NeonAuditLifecycleStore(backend)
+        return RLSNeonAuditLifecycleStore(backend)
     path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
     if not path:
         if required:
