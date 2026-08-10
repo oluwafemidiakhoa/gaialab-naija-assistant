@@ -43,6 +43,27 @@ def _plain_mapping(value: Any) -> dict[str, Any]:
     return result
 
 
+def _usage_counts(value: Any) -> dict[str, Any]:
+    """Normalize usage without keys that look like secret authentication tokens."""
+    raw = _plain_mapping(value)
+    aliases = {
+        "input_tokens": "input_count",
+        "prompt_tokens": "input_count",
+        "output_tokens": "output_count",
+        "completion_tokens": "output_count",
+        "total_tokens": "total_count",
+        "input_token_count": "input_count",
+        "output_token_count": "output_count",
+        "total_token_count": "total_count",
+    }
+    normalized: dict[str, Any] = {}
+    for key, item in raw.items():
+        name = aliases.get(str(key))
+        if name and isinstance(item, (int, float)) and not isinstance(item, bool):
+            normalized[name] = item
+    return normalized
+
+
 def _provider_options(
     request: Mapping[str, Any],
     defaults: Mapping[str, Any] | None,
@@ -134,7 +155,7 @@ def openai_responses_adapter(
             "response_id": _value(raw, "id"),
             "status": _value(raw, "status"),
             "response_model": _value(raw, "model"),
-            "usage": _plain_mapping(_value(raw, "usage")),
+            "usage": _usage_counts(_value(raw, "usage")),
         }
 
     return ProviderAdapter(
@@ -188,7 +209,7 @@ def anthropic_messages_adapter(
             "response_id": _value(raw, "id"),
             "stop_reason": _value(raw, "stop_reason"),
             "response_model": _value(raw, "model"),
-            "usage": _plain_mapping(_value(raw, "usage")),
+            "usage": _usage_counts(_value(raw, "usage")),
         }
 
     return ProviderAdapter(
@@ -225,7 +246,7 @@ def gemini_interactions_adapter(
             "response_id": _value(raw, "id"),
             "status": _value(raw, "status"),
             "response_model": _value(raw, "model"),
-            "usage": _plain_mapping(_value(raw, "usage")),
+            "usage": _usage_counts(_value(raw, "usage")),
         }
 
     return ProviderAdapter(
@@ -282,7 +303,7 @@ def qwen_dashscope_adapter(
             "request_id": _value(raw, "request_id"),
             "status_code": _value(raw, "status_code"),
             "code": _value(raw, "code"),
-            "usage": _plain_mapping(_value(raw, "usage")),
+            "usage": _usage_counts(_value(raw, "usage")),
         }
 
     return ProviderAdapter(
