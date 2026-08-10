@@ -14,11 +14,14 @@ from src.audit_export import create_audit_package_from_store, verify_audit_packa
 from src.claim_extraction import extract_claims
 from src.claim_reconciliation import reconcile_claims
 from src.key_registry import SigningKeyRegistry, SigningKeyRegistryError
+from src.neon_observability import failure_snapshot, readiness_report
 from src.operator_auth import require_admin_scope
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 from src.receipt_store import ReceiptConflictError, ReceiptStore
 from src.storage_backend import (
     audit_lifecycle_store,
+    neon_backend,
+    operator_neon_backend,
     operator_registry,
     rate_limiter,
     receipt_store,
@@ -39,7 +42,7 @@ from src.trust_engine import verify_interaction
 API_VERSION = "v1"
 app = FastAPI(
     title="GaiaLab Naija Trust API",
-    version="0.7.0",
+    version="0.8.0",
     description="Tenant-scoped AI verification with Neon Postgres production storage and SQLite local fallback.",
 )
 
@@ -313,23 +316,67 @@ def verify_payload(
     }
 
 
+@app.get("/live")
+def live() -> dict[str, Any]:
+    """Process liveness only; intentionally does not touch the database."""
+    return {
+        "status": "alive",
+        "service": "gaialab-naija-trust-api",
+        "api_version": API_VERSION,
+    }
+
+
+@app.get("/ready")
+def ready() -> dict[str, Any]:
+    """Traffic readiness: database, migrations, and runtime role safety."""
+    if storage_mode() != "neon":
+        return {
+            "ready": True,
+            "storage_mode": "sqlite",
+            "database_probe": "not_applicable",
+        }
+    tenant = neon_backend()
+    if tenant is None:
+        raise HTTPException(status_code=503, detail="Neon tenant runtime is not configured")
+    try:
+        report = readiness_report(
+            tenant_backend=tenant,
+            operator_backend=operator_neon_backend(),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "ready": False,
+                "reason": type(exc).__name__,
+                "failures": failure_snapshot(),
+            },
+        ) from exc
+    if not report["ready"]:
+        raise HTTPException(status_code=503, detail=report)
+    return report
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     neon = bool(os.getenv("GAIALAB_DATABASE_URL"))
+    operator_neon = bool(os.getenv("GAIALAB_OPERATOR_DATABASE_URL"))
     return {
         "status": "ok",
         "service": "gaialab-naija-trust-api",
         "api_version": API_VERSION,
         "storage_mode": storage_mode(),
         "neon_configured": neon,
+        "operator_neon_configured": operator_neon,
         "tenant_auth_configured": neon or bool(os.getenv("GAIALAB_TENANT_DB")),
-        "operator_auth_configured": neon or bool(os.getenv("GAIALAB_OPERATOR_DB")),
+        "operator_auth_configured": operator_neon or bool(os.getenv("GAIALAB_OPERATOR_DB")),
         "tenant_policy_configured": neon or bool(os.getenv("GAIALAB_TENANT_POLICY_DB")),
         "rate_limit_configured": neon or bool(os.getenv("GAIALAB_RATE_LIMIT_DB") or os.getenv("GAIALAB_TENANT_DB")),
         "receipt_signing_configured": bool(os.getenv("GAIALAB_TRUST_SIGNING_KEY_B64")),
         "signing_key_registry_configured": neon or bool(os.getenv("GAIALAB_TRUST_KEY_REGISTRY_DB")),
         "receipt_store_configured": neon or bool(os.getenv("GAIALAB_TRUST_RECEIPT_DB")),
-        "audit_lifecycle_configured": neon or bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
+        "audit_lifecycle_configured": (neon and operator_neon) or bool(os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")),
+        "database_failures": failure_snapshot(),
     }
 
 
