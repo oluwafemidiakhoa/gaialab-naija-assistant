@@ -10,7 +10,7 @@ from typing import Any, Mapping, Sequence
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 from src.receipt_store import ReceiptStore
 
-AUDIT_EXPORT_VERSION = "gaialab-naija-audit-export/0.1.0"
+AUDIT_EXPORT_VERSION = "gaialab-naija-audit-export/0.2.0"
 
 
 def _canonical_json(payload: Any) -> str:
@@ -39,9 +39,9 @@ def _matches(record: Mapping[str, Any], dispositions: set[str] | None) -> bool:
     return receipt.get("disposition") in dispositions
 
 
-def create_audit_package(
+def create_audit_package_from_store(
     *,
-    receipt_store_path: str,
+    receipt_store: Any,
     tenant_id: str,
     created_from: str | None = None,
     created_to: str | None = None,
@@ -50,7 +50,7 @@ def create_audit_package(
     signing_key_b64: str | None = None,
 ) -> dict[str, Any]:
     selected_dispositions = _normalize_dispositions(dispositions)
-    records = ReceiptStore(receipt_store_path).list_for_tenant(
+    records = receipt_store.list_for_tenant(
         tenant_id,
         created_from=created_from,
         created_to=created_to,
@@ -129,6 +129,28 @@ def create_audit_package(
             "raw_evidence_included": False,
         },
     }
+
+
+def create_audit_package(
+    *,
+    receipt_store_path: str,
+    tenant_id: str,
+    created_from: str | None = None,
+    created_to: str | None = None,
+    dispositions: Sequence[str] | None = None,
+    limit: int = 10000,
+    signing_key_b64: str | None = None,
+) -> dict[str, Any]:
+    """Backward-compatible SQLite wrapper used by local scripts/tests."""
+    return create_audit_package_from_store(
+        receipt_store=ReceiptStore(receipt_store_path),
+        tenant_id=tenant_id,
+        created_from=created_from,
+        created_to=created_to,
+        dispositions=dispositions,
+        limit=limit,
+        signing_key_b64=signing_key_b64,
+    )
 
 
 def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
