@@ -27,7 +27,14 @@ def current_rls_context() -> dict[str, Any]:
 
 
 class RLSNeonBackend(NeonBackend):
-    """Neon backend that requires versioned migrations and applies tenant RLS context."""
+    """Neon backend that requires versioned migrations and applies tenant RLS context.
+
+    The base Neon stores historically pass ``tenant_id=`` and ``operator=`` to
+    ``connect``. The RLS backend accepts those arguments for call compatibility,
+    but the ``operator`` flag is deliberately non-authoritative: operator access
+    is derived only from the authenticated PostgreSQL ``SESSION_USER`` via the
+    role registry installed by migration 0003.
+    """
 
     def initialize(self) -> None:
         """Runtime startup never mutates schema; migrations are explicit."""
@@ -52,11 +59,31 @@ class RLSNeonBackend(NeonBackend):
             )
         return status
 
-    def connect(self):
+    def connect(
+        self,
+        *,
+        tenant_id: str | None = None,
+        operator: bool = False,
+    ):
+        """Open a runtime connection without any session-controlled operator bypass.
+
+        ``operator`` is accepted only because inherited stores still pass it. It
+        never sets ``gaialab.operator_mode`` and never changes authorization.
+        Tenant scope may come from the explicit argument, the context variable,
+        or both when they agree.
+        """
+        del operator  # authorization comes from SESSION_USER, never this flag
+        contextual_tenant = _tenant_context.get()
+        if tenant_id is not None and contextual_tenant not in (None, tenant_id):
+            raise ValueError("tenant_id does not match active RLS context")
+        effective_tenant = tenant_id if tenant_id is not None else contextual_tenant
+
+        # Bypass NeonBackend.connect's legacy tenant/operator GUC handling. The
+        # RLS backend owns the complete runtime context contract here.
         connection = super().connect()
         connection.execute(
             "SELECT set_config('gaialab.tenant_id', %s, true)",
-            (_tenant_context.get() or "",),
+            (effective_tenant or "",),
         )
         return connection
 
