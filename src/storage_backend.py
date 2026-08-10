@@ -138,15 +138,19 @@ def rate_limiter() -> Any:
     return FixedWindowRateLimiter(path)
 
 
-def audit_lifecycle_store(*, required: bool = True, operator: bool = False) -> Any | None:
+def audit_lifecycle_store(*, required: bool = True) -> Any | None:
+    """Return tenant export storage or operator lifecycle storage.
+
+    Existing API behavior uses ``required=False`` while registering a tenant's
+    export and ``required=True`` for authenticated admin lifecycle routes. In
+    Neon mode those paths intentionally use different database logins.
+    """
     tenant_backend = neon_backend()
     if tenant_backend:
-        if operator:
+        if required:
             backend = operator_neon_backend()
             if backend is None:
-                if required:
-                    raise RuntimeError("Neon operator lifecycle access requires GAIALAB_OPERATOR_DATABASE_URL")
-                return None
+                raise RuntimeError("Neon admin lifecycle access requires GAIALAB_OPERATOR_DATABASE_URL")
             return NeonAuditLifecycleStore(backend)
         return RLSNeonAuditLifecycleStore(tenant_backend)
     path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
