@@ -34,7 +34,9 @@ class RLSNeonBackend(NeonBackend):
         return None
 
     def assert_schema_current(self) -> dict[str, object]:
-        status = migration_status(self.migration_database_url)
+        # Deliberately use the runtime identity. Runtime readiness must not depend
+        # on access to the migration/owner credential.
+        status = migration_status(self.database_url)
         if status["drift"]:
             raise RuntimeError(
                 "Neon migration checksum drift detected: " + ", ".join(status["drift"])
