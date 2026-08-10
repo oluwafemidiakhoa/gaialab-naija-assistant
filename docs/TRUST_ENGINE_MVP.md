@@ -1,30 +1,13 @@
 # GaiaLab Naija Trust Rail MVP
 
-The Trust Rail is a model-agnostic AI evidence and assurance layer for consequential Nigerian AI interactions.
+The Trust Rail is a model-agnostic AI evidence and assurance layer for consequential Nigerian AI interactions. Automated findings remain advisory and never mutate governed human approval or release state.
 
-It does **not** approve governed records, mutate human-review decisions, or publish releases. It evaluates candidate AI output, extracts a narrow set of consequential claims, reconciles them against explicit authoritative state, and returns an advisory disposition plus verifiable receipts.
+## Current flow
 
-## Initial fintech/customer-support wedge
-
-The first deterministic policy pack targets:
-
-- unsupported refund or reversal claims
-- unsupported completion timelines
-- unsupported account actions or status
-- unsupported fees or monetary amounts
-- contradictions against authoritative transaction state
-- unsupported absolute certainty
-- conflicting machine-extracted transaction/account claims
-
-## Dispositions
-
-- `ALLOW` — no configured trust finding was detected
-- `VERIFY` — evidence should be checked before relying on the response
-- `REWRITE` — the response should be rewritten before delivery
-- `ESCALATE` — route to an authorized reviewer or support workflow
-- `BLOCK` — do not deliver the candidate response as written
-
-These are runtime advisory dispositions, not governance approvals.
+```text
+AI model -> candidate response -> deterministic claim extraction -> authoritative-state reconciliation
+-> ALLOW / VERIFY / REWRITE / ESCALATE / BLOCK -> signed verification receipt -> tenant-scoped audit store
+```
 
 ## Run the API
 
@@ -32,17 +15,26 @@ These are runtime advisory dispositions, not governance approvals.
 uvicorn src.trust_api:app --reload
 ```
 
-Health check:
+Production-style verification now requires a tenant API key in `X-API-Key`.
+
+## Tenant authentication
+
+Configure a tenant registry:
 
 ```bash
-curl http://127.0.0.1:8000/health
+export GAIALAB_TENANT_DB="data/trust_tenants.sqlite3"
+python scripts/manage_trust_identity.py create-tenant --db "$GAIALAB_TENANT_DB" --name "Example Fintech"
+python scripts/manage_trust_identity.py issue-api-key --db "$GAIALAB_TENANT_DB" --tenant-id TENANT_ID --label server
 ```
 
-Verify a candidate response:
+Only the API-key hash is stored. The plaintext API key is returned once at issuance and should be handled as a secret.
+
+Verify a response:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/verify \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: gaia_live_..." \
   -d '{
     "user_message": "What happened to my transfer?",
     "assistant_response": "Your transfer was successful.",
@@ -51,113 +43,95 @@ curl -X POST http://127.0.0.1:8000/v1/verify \
   }'
 ```
 
-`assistant_claims` is optional. When omitted, the service runs deterministic typed extraction for supported high-impact claim classes. Caller-supplied structured claims remain supported for integrations that already produce them.
+The tenant ID is bound into the verification receipt. Stored receipt lookup is tenant-scoped, so one tenant cannot retrieve another tenant's receipt by guessing or learning its ID.
 
 ## Automatic typed claim extraction
 
-`src/claim_extraction.py` extracts a deliberately narrow and auditable claim set from candidate responses, including:
-
-- transaction status
-- refund/reversal status
-- account status
-- NGN fee/amount claims
-- refund ETA expressed in hours/days
-- simple consequential ETA tokens such as `today`/`tomorrow`
-
-The extractor records matched text and confidence, flags conflicting claims, handles common negation cases, and is **advisory only**. It is not evidence and cannot approve a response.
+`src/claim_extraction.py` extracts a deliberately narrow and auditable set of consequential claims such as transaction status, refund/reversal status, account status, NGN fee/amount claims, refund ETA and simple delivery/completion ETA tokens. It records matched text, handles common negation and flags conflicting claims. Extraction is advisory only and never counts as evidence.
 
 ## Structured reconciliation
 
-`src/claim_reconciliation.py` compares extracted or caller-supplied claims to `authoritative_state` and optional `evidence`.
+`src/claim_reconciliation.py` compares extracted or caller-supplied claims with `authoritative_state` and optional `evidence`. Outcomes are `SUPPORTED`, `UNSUPPORTED`, or `CONTRADICTED`. A contradicted high-impact claim can drive `BLOCK`; unsupported consequential claims trigger a stricter verification/rewrite path.
 
-Outcomes are:
+## Signed receipts and key rotation
 
-- `SUPPORTED`
-- `UNSUPPORTED`
-- `CONTRADICTED`
-
-A contradicted high-impact claim drives a `BLOCK`; unsupported high-impact structured claims require at least a rewrite/verification action according to the policy pack.
-
-## Signed Trust Receipts
-
-The API can sign each `verification_receipt` using Ed25519. The private signing key is never stored in the repository.
-
-Generate a keypair:
+Generate an Ed25519 keypair:
 
 ```bash
 python scripts/generate_trust_signing_key.py
 ```
 
-Set the raw private key returned by the script as a secret:
+Keep the private key outside the repository:
 
 ```bash
 export GAIALAB_TRUST_SIGNING_KEY_B64="..."
 ```
 
-When signing is configured, `/v1/verify` returns a `receipt_envelope` containing:
+Configure the public-key registry:
 
-- the deterministic `verification_receipt`
-- Ed25519 signature
-- public verification key
-- `key_id`
-- signature algorithm/version
+```bash
+export GAIALAB_TRUST_KEY_REGISTRY_DB="data/trust_signing_keys.sqlite3"
+python scripts/manage_trust_identity.py register-signing-key \
+  --db "$GAIALAB_TRUST_KEY_REGISTRY_DB" \
+  --public-key-b64 PUBLIC_KEY_B64 \
+  --label primary-2026
+```
 
-Verify any envelope without the private key:
+The registry stores public keys only. Lifecycle state is append-only through `registered`, `activated`, `retired`, and `revoked` events. A configured signing key must be registered and `active` before the API will issue signed receipts.
+
+For rotation, generate/register the new key, switch the deployment secret, then retire the old key:
+
+```bash
+python scripts/manage_trust_identity.py transition-signing-key \
+  --db "$GAIALAB_TRUST_KEY_REGISTRY_DB" \
+  --key-id OLD_KEY_ID --event retired --reason rotation
+```
+
+Use `revoked` when a key should no longer be trusted operationally, such as after suspected compromise. Historical signatures remain cryptographically checkable, while registry status communicates current trust state.
+
+Public discovery endpoints:
 
 ```text
+GET /v1/signing-keys
+GET /v1/signing-keys/{key_id}
 POST /v1/receipts/verify
 ```
 
-The verifier rejects tampered receipts, mismatched key IDs, malformed keys, and invalid signatures.
-
-## Append-only receipt persistence
-
-Optional local persistence uses SQLite and write-once semantics.
+## Tenant-scoped append-only receipts
 
 ```bash
 export GAIALAB_TRUST_RECEIPT_DB="data/trust_receipts.sqlite3"
 ```
 
-For an existing `verification_id`:
+For an existing `verification_id`, identical content under the same tenant is idempotent; different content or attempted tenant rebinding raises a conflict instead of overwriting history.
 
-- identical content is treated as idempotent
-- different content raises a conflict instead of overwriting history
-
-Endpoints:
+Authenticated endpoints:
 
 ```text
+POST /v1/verify
 GET /v1/receipts/{verification_id}
 GET /v1/receipts/{verification_id}/verify
 ```
 
-This is the first local persistence implementation. Enterprise deployments should move the same append-only contract to a managed transactional store with tenant isolation, access control, retention policy, and audit export.
+## Security boundaries
 
-## Privacy boundary
+- private signing keys never belong in Git or the public-key registry
+- only hashed tenant API keys are stored
+- stored receipts are isolated by tenant ID
+- public receipt verification proves signature integrity, not truthfulness of upstream business data
+- automated dispositions do not constitute governed human approval
+- SQLite remains an MVP persistence layer; enterprise deployment should use managed secrets, rate limiting, authorization roles, transactional audit storage, backups and retention controls
 
-The existing Trust Receipt does not embed raw authoritative-state or evidence values. The signed verification receipt links deterministic IDs for the text-policy result, claim extraction, and reconciliation result.
+## Synthetic benchmark
 
-Public verification must not become a mechanism for leaking private customer, transaction, or account data.
-
-## Synthetic fintech benchmark
-
-The repository contains an initial synthetic engineering benchmark for trust-policy behavior. It is useful for regression coverage but is **not** culturally validated data, not training-eligible data, and not evidence of production model quality.
-
-## Current limitations
-
-- deterministic extraction is deliberately narrow and English-first
-- Nigerian English/Pidgin claim extraction needs governed expansion
-- free-form semantic claims outside the configured types are not automatically reconciled
-- timelines such as calendar dates and complex SLAs need richer typed normalization
-- signing proves receipt integrity/authenticity for the configured key; it does not prove that upstream authoritative data was truthful
-- SQLite is a local MVP store, not an enterprise multi-tenant audit backend
-- API authentication, rate limiting, tenant boundaries, key rotation registry, and authorization are not included yet
+The initial Nigerian fintech benchmark remains deliberately synthetic engineering coverage. It is not culturally validated, training-eligible data or evidence of production model quality.
 
 ## Next build sequence
 
-1. Add key rotation and a public signing-key registry so historical receipts remain verifiable.
-2. Add tenant/API-key boundaries and append-only enterprise audit storage.
-3. Expand deterministic Nigerian English/Pidgin extraction with governed reviewer benchmarks.
-4. Add provider adapters for OpenAI, Anthropic, Gemini, Qwen, N-ATLAS, and private models.
-5. Add a Trust Dashboard for receipt lookup, model comparison, failure classes, and audit exports.
-6. Add optional model-assisted claim extraction behind the deterministic boundary, evaluated against held-out governed benchmarks before use.
-7. Preserve the separation between automated trust findings and governed human approval/release workflows.
+1. Add organization-specific policy packs and per-tenant configuration.
+2. Add rate limits, scoped API-key roles and an operator/admin authorization boundary.
+3. Move the append-only audit contract to a managed transactional backend with export/retention controls.
+4. Expand Nigerian English/Pidgin extraction using governed reviewer benchmarks.
+5. Add provider adapters for OpenAI, Anthropic, Gemini, Qwen, N-ATLAS and private models.
+6. Add the Trust Dashboard for tenant/model risk analytics, receipt search and audit exports.
+7. Evaluate optional model-assisted extraction behind the deterministic boundary before enabling it.
