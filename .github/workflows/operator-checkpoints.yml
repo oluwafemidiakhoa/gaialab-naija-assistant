@@ -1,0 +1,40 @@
+name: Operator Checkpoint Security
+
+on:
+  push:
+    paths:
+      - "src/operator_checkpoint.py"
+      - "src/operator_action_log.py"
+      - "src/receipt_signing.py"
+      - "scripts/operator_checkpoint.py"
+      - "tests/test_operator_checkpoint.py"
+      - "tests/test_operator_action_log.py"
+      - ".github/workflows/operator-checkpoints.yml"
+  pull_request:
+    paths:
+      - "src/operator_checkpoint.py"
+      - "src/operator_action_log.py"
+      - "src/receipt_signing.py"
+      - "scripts/operator_checkpoint.py"
+      - "tests/test_operator_checkpoint.py"
+      - "tests/test_operator_action_log.py"
+      - ".github/workflows/operator-checkpoints.yml"
+
+jobs:
+  checkpoint-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install focused dependencies
+        run: >-
+          python -m pip install
+          "pytest>=8,<10"
+          "cryptography>=44,<47"
+          "psycopg[binary]>=3.2,<4"
+      - name: Run operator checkpoint contracts
+        run: python -m pytest -q tests/test_operator_checkpoint.py tests/test_operator_action_log.py
+      - name: Compile checkpoint modules
+        run: python -m py_compile src/operator_checkpoint.py scripts/operator_checkpoint.py
