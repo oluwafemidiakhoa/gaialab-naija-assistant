@@ -3,6 +3,9 @@
 This module extracts a deliberately narrow set of consequential fintech/customer
 support claims from candidate assistant responses. Extraction is advisory and
 never constitutes evidence, approval, or a business-state mutation.
+
+The Nigerian English/Pidgin patterns are intentionally conservative. They are
+regression coverage for known phrasing, not a claim of complete dialect support.
 """
 
 from __future__ import annotations
@@ -13,7 +16,7 @@ import json
 import re
 from typing import Any
 
-EXTRACTION_VERSION = "gaialab-naija-claim-extraction/0.1.0"
+EXTRACTION_VERSION = "gaialab-naija-claim-extraction/0.2.0"
 
 
 @dataclass(frozen=True)
@@ -37,46 +40,153 @@ def _sha256(payload: Any) -> str:
 
 
 _TRANSACTION_STATUS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("pending", re.compile(r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|remains?|still)\b.{0,12}\b(?:pending|processing)\b", re.IGNORECASE)),
-    ("completed", re.compile(r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?:successful|completed|succeeded)\b", re.IGNORECASE)),
-    ("failed", re.compile(r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?:failed|declined|unsuccessful)\b", re.IGNORECASE)),
-    ("reversed", re.compile(r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?:reversed|refunded|returned)\b", re.IGNORECASE)),
+    (
+        "pending",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|remains?|still)\b.{0,12}\b(?P<status>pending|processing)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "pending",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:still\s+dey|dey)\b.{0,10}\b(?P<status>pending|process(?:ing)?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "completed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?P<status>successful|completed|succeeded)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "completed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\bdon\s+(?P<status>enter|complete|succeed|land|go\s+through)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "failed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?P<status>failed|declined|unsuccessful)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "failed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\bdon\s+(?P<status>fail|decline)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "reversed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\b(?:is|was|has been)\b.{0,12}\b(?P<status>reversed|refunded|returned)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "reversed",
+        re.compile(
+            r"\b(?:transfer|transaction|payment)\b.{0,30}\bdon\s+(?P<status>reverse|revert)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "reversed",
+        re.compile(
+            r"\b(?:dem|we)\s+don\s+(?P<status>reverse|revert)\b.{0,30}\b(?:the\s+)?(?:transfer|transaction|payment)\b",
+            re.IGNORECASE,
+        ),
+    ),
 )
 
 _REFUND_STATUS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("pending", re.compile(r"\b(?:refund|reversal)\b.{0,24}\b(?:is|remains?|still)\b.{0,12}\b(?:pending|processing)\b", re.IGNORECASE)),
-    ("completed", re.compile(r"\b(?:refund|reversal)\b.{0,24}\b(?:is|was|has been)\b.{0,12}\b(?:completed|processed|successful)\b", re.IGNORECASE)),
-    ("reversed", re.compile(r"\b(?:refund|reversal)\b.{0,24}\b(?:has been|was|is)\b.{0,12}\b(?:reversed|refunded|returned)\b", re.IGNORECASE)),
+    (
+        "pending",
+        re.compile(
+            r"\b(?:refund|reversal)\b.{0,24}\b(?:is|remains?|still)\b.{0,12}\b(?P<status>pending|processing)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "pending",
+        re.compile(
+            r"\b(?:refund|reversal)\b.{0,24}\b(?:still\s+dey|dey)\b.{0,10}\b(?P<status>pending|process(?:ing)?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "completed",
+        re.compile(
+            r"\b(?:refund|reversal)\b.{0,24}\b(?:is|was|has been)\b.{0,12}\b(?P<status>completed|processed|successful)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "completed",
+        re.compile(
+            r"\b(?:refund|reversal)\b.{0,24}\bdon\s+(?P<status>complete|process|enter|land)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "reversed",
+        re.compile(
+            r"\b(?:refund|reversal)\b.{0,24}\b(?:has been|was|is)\b.{0,12}\b(?P<status>reversed|refunded|returned)\b",
+            re.IGNORECASE,
+        ),
+    ),
 )
 
 _ACCOUNT_STATUS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("blocked", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\bblocked\b", re.IGNORECASE)),
-    ("restricted", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\brestricted\b", re.IGNORECASE)),
-    ("suspended", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\bsuspended\b", re.IGNORECASE)),
-    ("frozen", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\bfrozen\b", re.IGNORECASE)),
-    ("unblocked", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\bunblocked\b", re.IGNORECASE)),
-    ("reactivated", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\breactivated\b", re.IGNORECASE)),
-    ("verified", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be)\b.{0,8}\bverified\b", re.IGNORECASE)),
+    ("blocked", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey)\b.{0,8}\b(?P<status>blocked)\b", re.IGNORECASE)),
+    ("blocked", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>block)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("restricted", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey)\b.{0,8}\b(?P<status>restricted)\b", re.IGNORECASE)),
+    ("restricted", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>restrict)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("suspended", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey)\b.{0,8}\b(?P<status>suspended)\b", re.IGNORECASE)),
+    ("suspended", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>suspend)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("frozen", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey)\b.{0,8}\b(?P<status>frozen)\b", re.IGNORECASE)),
+    ("frozen", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>freeze)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("unblocked", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey|don)\b.{0,8}\b(?P<status>unblocked)\b", re.IGNORECASE)),
+    ("unblocked", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>unblock)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("reactivated", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey|don)\b.{0,8}\b(?P<status>reactivated)\b", re.IGNORECASE)),
+    ("reactivated", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>reactivate)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
+    ("verified", re.compile(r"\b(?:your\s+)?account\b.{0,16}\b(?:is|was|has been|will be|dey|don\s+dey|don)\b.{0,8}\b(?P<status>verified)\b", re.IGNORECASE)),
+    ("verified", re.compile(r"\b(?:we|dem)\s+don\s+(?P<status>verify)\b.{0,16}\b(?:your\s+)?account\b", re.IGNORECASE)),
 )
 
-_MONEY_RE = re.compile(r"(?P<currency>NGN\s*|₦\s*)(?P<amount>\d[\d,]*(?:\.\d{1,2})?)", re.IGNORECASE)
-_FEE_CONTEXT_RE = re.compile(r"\b(?:fee|charge|penalty|levy)\b", re.IGNORECASE)
+_MONEY_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?P<currency>NGN|₦|N)\s*(?P<amount>\d[\d,]*(?:\.\d{1,2})?)",
+    re.IGNORECASE,
+)
+_FEE_CONTEXT_RE = re.compile(r"\b(?:fee|charge|penalty|levy|deduct(?:ed|ion)?)\b", re.IGNORECASE)
 _TRANSACTION_AMOUNT_CONTEXT_RE = re.compile(r"\b(?:sent|send|transfer(?:red)?|transaction|payment|amount)\b", re.IGNORECASE)
 _REFUND_ETA_HOURS_RE = re.compile(
-    r"\b(?:refund|reversal|money|funds?)\b.{0,45}\bwithin\s+(?P<hours>\d+)\s+hours?\b",
+    r"\b(?:refund|reversal|money|funds?)\b.{0,45}\b(?:within|in|before)\s+(?P<hours>\d+)\s+hours?\b",
     re.IGNORECASE,
 )
 _REFUND_ETA_DAYS_RE = re.compile(
-    r"\b(?:refund|reversal|money|funds?)\b.{0,45}\bwithin\s+(?P<days>\d+)\s+days?\b",
+    r"\b(?:refund|reversal|money|funds?)\b.{0,45}\b(?:within|in|before)\s+(?P<days>\d+)\s+days?\b",
     re.IGNORECASE,
 )
-_ETA_RE = re.compile(r"\b(?:arrive|delivered|completed|processed|resolved)\b.{0,35}\b(?:today|tomorrow|tonight)\b", re.IGNORECASE)
-_NEGATION_RE = re.compile(r"\b(?:not|isn't|isnt|wasn't|wasnt|hasn't|hasnt|won't|wont|cannot|can't|cant)\b", re.IGNORECASE)
+_ETA_RE = re.compile(
+    r"\b(?:arrive|delivered|completed|processed|resolved|complete|enter|land|resolve)\b.{0,35}\b(?:by\s+)?(?P<eta>today|tomorrow|tonight)\b",
+    re.IGNORECASE,
+)
+_NEGATION_RE = re.compile(
+    r"\b(?:not|no|never|isn't|isnt|wasn't|wasnt|hasn't|hasnt|won't|wont|cannot|can't|cant)\b",
+    re.IGNORECASE,
+)
 
 
 def _is_negated(text: str, start: int) -> bool:
-    prefix = text[max(0, start - 24):start]
-    prefix = re.split(r"[.;!?]", prefix)[-1]
+    prefix = text[max(0, start - 28):start]
+    prefix = re.split(r"[.;!?,:]", prefix)[-1]
     return bool(_NEGATION_RE.search(prefix))
 
 
@@ -88,7 +198,8 @@ def _add_status_claims(
 ) -> None:
     for value, pattern in patterns:
         for match in pattern.finditer(response):
-            if _is_negated(response, match.start()) or _NEGATION_RE.search(match.group(0)):
+            status_start = match.start("status") if "status" in match.re.groupindex else match.start()
+            if _is_negated(response, status_start):
                 continue
             items.append(
                 ExtractedClaim(
@@ -104,6 +215,8 @@ def _add_status_claims(
 def _money_claims(response: str) -> list[ExtractedClaim]:
     items: list[ExtractedClaim] = []
     for match in _MONEY_RE.finditer(response):
+        if _is_negated(response, match.start()):
+            continue
         amount = match.group("amount").replace(",", "")
         numeric: int | float
         if "." in amount:
@@ -141,7 +254,7 @@ def extract_claims(assistant_response: str) -> dict[str, Any]:
     items.extend(_money_claims(response))
 
     match = _REFUND_ETA_HOURS_RE.search(response)
-    if match:
+    if match and not _NEGATION_RE.search(match.group(0)):
         items.append(
             ExtractedClaim(
                 field="refund_eta_hours",
@@ -153,7 +266,7 @@ def extract_claims(assistant_response: str) -> dict[str, Any]:
         )
     else:
         match = _REFUND_ETA_DAYS_RE.search(response)
-        if match:
+        if match and not _NEGATION_RE.search(match.group(0)):
             items.append(
                 ExtractedClaim(
                     field="refund_eta_hours",
@@ -165,18 +278,16 @@ def extract_claims(assistant_response: str) -> dict[str, Any]:
             )
 
     eta_match = _ETA_RE.search(response)
-    if eta_match:
-        token_match = re.search(r"\b(today|tomorrow|tonight)\b", eta_match.group(0), re.IGNORECASE)
-        if token_match:
-            items.append(
-                ExtractedClaim(
-                    field="eta",
-                    value=token_match.group(1).lower(),
-                    claim_text=eta_match.group(0),
-                    confidence=0.82,
-                    extractor="deterministic_timeline_pattern",
-                )
+    if eta_match and not _is_negated(response, eta_match.start()):
+        items.append(
+            ExtractedClaim(
+                field="eta",
+                value=eta_match.group("eta").lower(),
+                claim_text=eta_match.group(0),
+                confidence=0.82,
+                extractor="deterministic_timeline_pattern",
             )
+        )
 
     by_field: dict[str, list[ExtractedClaim]] = {}
     for item in items:
