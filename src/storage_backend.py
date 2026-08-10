@@ -11,6 +11,7 @@ import os
 from typing import Any
 
 from src.audit_lifecycle import AuditLifecycleStore
+from src.audited_admin_storage import AuditedAuditLifecycleStore, AuditedRetentionDeletionStore
 from src.key_registry import SigningKeyRegistry
 from src.neon_rls import RLSNeonBackend, RLSNeonTenantRegistry
 from src.neon_rls_storage import RLSNeonAuditLifecycleStore, RLSNeonReceiptStore, RLSNeonTenantPolicyStore
@@ -24,8 +25,7 @@ from src.tenant_auth import TenantRegistry
 from src.tenant_policy import TenantPolicyStore
 
 
-def _migration_url() -> str | None:
-    return os.getenv("GAIALAB_MIGRATION_DATABASE_URL")
+def _migration_url() -> str | None: return os.getenv("GAIALAB_MIGRATION_DATABASE_URL")
 
 
 @lru_cache(maxsize=1)
@@ -106,37 +106,7 @@ def rate_limiter() -> Any:
     return FixedWindowRateLimiter(path)
 
 
-def audit_lifecycle_store(*, required: bool = True) -> Any | None:
-    tenant_backend = neon_backend()
-    if tenant_backend:
-        if required:
-            backend = operator_neon_backend()
-            if backend is None: raise RuntimeError("Neon admin lifecycle access requires GAIALAB_OPERATOR_DATABASE_URL")
-            return NeonAuditLifecycleStore(backend)
-        return RLSNeonAuditLifecycleStore(tenant_backend)
-    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
-    if not path:
-        if required: raise RuntimeError("audit lifecycle registry is not configured")
-        return None
-    return AuditLifecycleStore(path)
-
-
-def retention_deletion_store(*, required: bool = True) -> Any | None:
-    if neon_backend() is not None:
-        backend = operator_neon_backend()
-        if backend is None:
-            if required: raise RuntimeError("Neon retention deletion requires GAIALAB_OPERATOR_DATABASE_URL")
-            return None
-        return NeonRetentionDeletionStore(backend)
-    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
-    if not path:
-        if required: raise RuntimeError("retention deletion requires GAIALAB_AUDIT_LIFECYCLE_DB")
-        return None
-    return RetentionDeletionStore(path)
-
-
 def operator_action_log(*, required: bool = True) -> Any | None:
-    """Return the tamper-evident operator action ledger."""
     if neon_backend() is not None:
         backend = operator_neon_backend()
         if backend is None:
@@ -151,3 +121,38 @@ def operator_action_log(*, required: bool = True) -> Any | None:
         if required: raise RuntimeError("operator action logging is not configured")
         return None
     return OperatorActionLog(path)
+
+
+def audit_lifecycle_store(*, required: bool = True) -> Any | None:
+    tenant_backend = neon_backend()
+    if tenant_backend:
+        if required:
+            backend = operator_neon_backend()
+            if backend is None: raise RuntimeError("Neon admin lifecycle access requires GAIALAB_OPERATOR_DATABASE_URL")
+            return AuditedAuditLifecycleStore(NeonAuditLifecycleStore(backend), NeonOperatorActionLog(backend))
+        return RLSNeonAuditLifecycleStore(tenant_backend)
+    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
+    if not path:
+        if required: raise RuntimeError("audit lifecycle registry is not configured")
+        return None
+    store = AuditLifecycleStore(path)
+    if required:
+        action_log = operator_action_log(required=False)
+        return AuditedAuditLifecycleStore(store, action_log) if action_log else store
+    return store
+
+
+def retention_deletion_store(*, required: bool = True) -> Any | None:
+    if neon_backend() is not None:
+        backend = operator_neon_backend()
+        if backend is None:
+            if required: raise RuntimeError("Neon retention deletion requires GAIALAB_OPERATOR_DATABASE_URL")
+            return None
+        return AuditedRetentionDeletionStore(NeonRetentionDeletionStore(backend), NeonOperatorActionLog(backend))
+    path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
+    if not path:
+        if required: raise RuntimeError("retention deletion requires GAIALAB_AUDIT_LIFECYCLE_DB")
+        return None
+    store = RetentionDeletionStore(path)
+    action_log = operator_action_log(required=False)
+    return AuditedRetentionDeletionStore(store, action_log) if action_log else store
