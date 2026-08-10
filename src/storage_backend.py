@@ -1,8 +1,7 @@
 """Runtime storage selection for GaiaLab Naija Trust Rail.
 
-If GAIALAB_DATABASE_URL is configured, all production persistence uses the shared
-Neon Postgres backend with RLS-enforcing store wrappers. Otherwise existing
-SQLite stores remain available for local development and tests.
+Production Neon uses distinct tenant-runtime and operator-runtime database
+connections. SQLite remains available for local development and isolated tests.
 """
 
 from __future__ import annotations
@@ -13,13 +12,18 @@ from typing import Any
 
 from src.audit_lifecycle import AuditLifecycleStore
 from src.key_registry import SigningKeyRegistry
-from src.neon_rls import RLSNeonBackend, RLSNeonOperatorRegistry, RLSNeonTenantRegistry
+from src.neon_rls import RLSNeonBackend, RLSNeonTenantRegistry
 from src.neon_rls_storage import (
     RLSNeonAuditLifecycleStore,
     RLSNeonReceiptStore,
     RLSNeonTenantPolicyStore,
 )
-from src.neon_storage import NeonRateLimiter, NeonSigningKeyRegistry
+from src.neon_storage import (
+    NeonAuditLifecycleStore,
+    NeonOperatorRegistry,
+    NeonRateLimiter,
+    NeonSigningKeyRegistry,
+)
 from src.operator_auth import OperatorRegistry
 from src.rate_limit import FixedWindowRateLimiter
 from src.receipt_store import ReceiptStore
@@ -27,14 +31,33 @@ from src.tenant_auth import TenantRegistry
 from src.tenant_policy import TenantPolicyStore
 
 
+def _migration_url() -> str | None:
+    return os.getenv("GAIALAB_MIGRATION_DATABASE_URL")
+
+
 @lru_cache(maxsize=1)
 def neon_backend() -> RLSNeonBackend | None:
+    """Tenant-runtime backend using the least-privilege application role."""
     database_url = os.getenv("GAIALAB_DATABASE_URL")
     if not database_url:
         return None
     backend = RLSNeonBackend(
         database_url,
-        migration_database_url=os.getenv("GAIALAB_MIGRATION_DATABASE_URL"),
+        migration_database_url=_migration_url() or database_url,
+    )
+    backend.assert_schema_current()
+    return backend
+
+
+@lru_cache(maxsize=1)
+def operator_neon_backend() -> RLSNeonBackend | None:
+    """Separate operator backend; never fall back to the tenant runtime URL."""
+    database_url = os.getenv("GAIALAB_OPERATOR_DATABASE_URL")
+    if not database_url:
+        return None
+    backend = RLSNeonBackend(
+        database_url,
+        migration_database_url=_migration_url() or database_url,
     )
     backend.assert_schema_current()
     return backend
@@ -55,9 +78,11 @@ def tenant_registry() -> Any:
 
 
 def operator_registry() -> Any:
-    backend = neon_backend()
-    if backend:
-        return RLSNeonOperatorRegistry(backend)
+    if neon_backend() is not None:
+        backend = operator_neon_backend()
+        if backend is None:
+            raise RuntimeError("Neon operator authentication requires GAIALAB_OPERATOR_DATABASE_URL")
+        return NeonOperatorRegistry(backend)
     path = os.getenv("GAIALAB_OPERATOR_DB")
     if not path:
         raise RuntimeError("operator authentication is not configured")
@@ -113,10 +138,17 @@ def rate_limiter() -> Any:
     return FixedWindowRateLimiter(path)
 
 
-def audit_lifecycle_store(*, required: bool = True) -> Any | None:
-    backend = neon_backend()
-    if backend:
-        return RLSNeonAuditLifecycleStore(backend)
+def audit_lifecycle_store(*, required: bool = True, operator: bool = False) -> Any | None:
+    tenant_backend = neon_backend()
+    if tenant_backend:
+        if operator:
+            backend = operator_neon_backend()
+            if backend is None:
+                if required:
+                    raise RuntimeError("Neon operator lifecycle access requires GAIALAB_OPERATOR_DATABASE_URL")
+                return None
+            return NeonAuditLifecycleStore(backend)
+        return RLSNeonAuditLifecycleStore(tenant_backend)
     path = os.getenv("GAIALAB_AUDIT_LIFECYCLE_DB")
     if not path:
         if required:
