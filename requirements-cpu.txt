@@ -15,3 +15,5 @@ streamlit>=1.41,<2
 PyYAML>=6.0,<7
 tensorboard>=2.16,<3
 pytest>=8.0,<10
+cryptography>=44,<47
+psycopg[binary]>=3.2,<4
