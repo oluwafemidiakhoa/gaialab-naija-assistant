@@ -60,7 +60,7 @@ def main() -> None:
         "--scope",
         action="append",
         dest="scopes",
-        choices=["audit:lifecycle", "tenants:manage", "policies:manage", "signing-keys:manage"],
+        choices=["audit:lifecycle", "audit:delete", "tenants:manage", "policies:manage", "signing-keys:manage"],
     )
 
     disable_admin_key = sub.add_parser("disable-admin-key")
