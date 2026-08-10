@@ -118,6 +118,7 @@ def test_live_tenant_rls_and_operator_audit_access():
             )
     finally:
         with psycopg.connect(MIGRATION_URL) as connection:
+            connection.execute("SELECT set_config('gaialab.tenant_id', %s, true)", (tenant_a,))
             connection.execute("DELETE FROM audit_export_events WHERE package_id = %s", (package_id,))
             connection.execute("DELETE FROM audit_exports WHERE package_id = %s", (package_id,))
             connection.execute(
