@@ -12,6 +12,7 @@ from psycopg.rows import dict_row
 
 
 MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations" / "neon"
+MIGRATION_LOCK_ID = 684214727611
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,7 @@ def apply_migrations(database_url: str, migrations: Iterable[Migration] | None =
     applied_now: list[str] = []
     with psycopg.connect(database_url, row_factory=dict_row) as connection:
         _ensure_migration_table(connection)
+        connection.execute("SELECT pg_advisory_xact_lock(%s)", (MIGRATION_LOCK_ID,))
         existing_rows = connection.execute(
             "SELECT version, sha256 FROM gaialab_schema_migrations"
         ).fetchall()
