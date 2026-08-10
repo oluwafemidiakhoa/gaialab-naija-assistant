@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Iterable
 
 import psycopg
+from psycopg import errors
 from psycopg.rows import dict_row
 
 
@@ -26,6 +27,10 @@ class Migration:
 
 class MigrationDriftError(RuntimeError):
     """Raised when an already-applied migration file has changed."""
+
+
+class MigrationTableMissingError(RuntimeError):
+    """Raised when a runtime status check sees an uninitialized database."""
 
 
 def discover_migrations(directory: Path = MIGRATIONS_DIR) -> list[Migration]:
@@ -65,12 +70,18 @@ def _ensure_migration_table(connection) -> None:
 
 
 def migration_status(database_url: str) -> dict[str, object]:
+    """Read migration state without creating or modifying schema."""
     migrations = discover_migrations()
-    with psycopg.connect(database_url, row_factory=dict_row) as connection:
-        _ensure_migration_table(connection)
-        rows = connection.execute(
-            "SELECT version, name, sha256, applied_at FROM gaialab_schema_migrations ORDER BY version"
-        ).fetchall()
+    try:
+        with psycopg.connect(database_url, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                "SELECT version, name, sha256, applied_at FROM gaialab_schema_migrations ORDER BY version"
+            ).fetchall()
+    except errors.UndefinedTable as exc:
+        raise MigrationTableMissingError(
+            "Neon migration history table is missing; run scripts/init_neon_storage.py"
+        ) from exc
+
     applied = {row["version"]: row for row in rows}
     drift: list[str] = []
     pending: list[str] = []
