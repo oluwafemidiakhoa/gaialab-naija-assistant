@@ -30,14 +30,19 @@ RUNTIME_TABLE_PRIVILEGES = {
 OPERATOR_TABLE_PRIVILEGES = {
     "operators": ("SELECT",),
     "operator_api_keys": ("SELECT",),
-    "audit_exports": ("SELECT", "UPDATE"),
-    "audit_export_events": ("SELECT", "INSERT"),
+    "audit_exports": ("SELECT", "UPDATE", "DELETE"),
+    "audit_export_events": ("SELECT", "INSERT", "DELETE"),
+    "retention_deletion_plans": ("SELECT", "INSERT"),
+    "retention_deletion_events": ("SELECT", "INSERT"),
     "gaialab_schema_migrations": ("SELECT",),
 }
 
 SEQUENCE_USAGE_ROLES = {
     "runtime": ("audit_export_events_event_id_seq",),
-    "operator": ("audit_export_events_event_id_seq",),
+    "operator": (
+        "audit_export_events_event_id_seq",
+        "retention_deletion_events_event_id_seq",
+    ),
 }
 
 
