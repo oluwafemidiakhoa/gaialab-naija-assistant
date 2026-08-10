@@ -55,7 +55,7 @@ def main() -> None:
         "--scope",
         action="append",
         dest="scopes",
-        choices=["audit:lifecycle", "tenants:manage", "policies:manage", "signing-keys:manage"],
+        choices=["audit:lifecycle", "audit:delete", "dashboard:read", "tenants:manage", "policies:manage", "signing-keys:manage"],
         help="Repeat to grant multiple admin scopes. Defaults to audit:lifecycle.",
     )
 
