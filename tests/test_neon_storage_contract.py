@@ -88,15 +88,22 @@ def test_rls_neon_backend_runtime_constructor_does_not_run_schema_ddl(monkeypatc
 
 def test_neon_migrations_are_ordered_and_checksummed():
     migrations = discover_migrations()
-    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004"]
+    assert [migration.version for migration in migrations] == ["0001", "0002", "0003", "0004", "0005"]
     assert all(len(migration.sha256) == 64 for migration in migrations)
-    assert [migration.name for migration in migrations] == ["initial", "tenant_rls", "database_roles", "observability"]
+    assert [migration.name for migration in migrations] == [
+        "initial",
+        "tenant_rls",
+        "database_roles",
+        "observability",
+        "retention_deletion",
+    ]
 
 
 def test_rls_migrations_force_tenant_isolation_without_session_operator_bypass():
     rls_sql = discover_migrations()[1].sql
     role_sql = discover_migrations()[2].sql
     observability_sql = discover_migrations()[3].sql
+    retention_sql = discover_migrations()[4].sql
     for table in ("verification_receipts", "tenant_policy_versions", "tenant_policy_events", "audit_exports", "audit_export_events"):
         assert f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY" in rls_sql
         assert f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY" in rls_sql
@@ -105,6 +112,8 @@ def test_rls_migrations_force_tenant_isolation_without_session_operator_bypass()
     assert "gaialab_is_operator()" in role_sql
     assert "gaialab.operator_mode" not in role_sql
     assert "gaialab_current_role_kind" in observability_sql
+    assert "retention_deletion_plans" in retention_sql
+    assert "verification_receipts" not in retention_sql
 
 
 def test_verify_payload_accepts_injected_production_store():
