@@ -10,29 +10,76 @@ The API automatically selects Neon when this variable is present:
 export GAIALAB_DATABASE_URL="postgresql://..."
 ```
 
-Use the **pooled** Neon connection string for `GAIALAB_DATABASE_URL`. It is used by normal API traffic for tenant authentication, operator authentication, policies, rate limiting, receipts, signing-key lifecycle, audit exports, and audit lifecycle events.
+Use the pooled Neon connection string for `GAIALAB_DATABASE_URL`. It is used by normal API traffic for tenant authentication, operator authentication, policies, rate limiting, receipts, signing-key lifecycle, audit exports, and audit lifecycle events.
 
-For schema initialization, prefer a **direct** Neon connection string:
+For migrations, prefer a direct Neon connection string:
 
 ```bash
 export GAIALAB_MIGRATION_DATABASE_URL="postgresql://..."
 ```
 
-If `GAIALAB_MIGRATION_DATABASE_URL` is omitted, initialization falls back to `GAIALAB_DATABASE_URL`.
+If `GAIALAB_MIGRATION_DATABASE_URL` is omitted, migration tooling falls back to `GAIALAB_DATABASE_URL`.
 
 Private database URLs are secrets and must never be committed to the repository.
 
-## Initialize schema
+## Versioned migrations
 
-Install dependencies and run:
+API startup does **not** create or modify database schema. `NeonBackend` construction is intentionally side-effect free.
+
+Schema changes live in ordered SQL files under:
+
+```text
+migrations/neon/
+```
+
+Current migrations:
+
+- `0001_initial.sql` — Trust Rail schema baseline
+- `0002_tenant_rls.sql` — tenant Row Level Security policies
+
+Apply migrations before deploying a new application revision:
 
 ```bash
 python scripts/init_neon_storage.py
 ```
 
-The bootstrap is idempotent and creates the Trust Rail tables and indexes using `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`.
+The migration runner records applied versions and SHA-256 checksums in `gaialab_schema_migrations`. If an already-applied migration file changes, deployment fails with migration drift instead of silently changing history.
 
-Current shared tables include:
+Applied migration files are immutable. Add a new numbered migration for every future schema change.
+
+## Row Level Security
+
+The tenant data plane uses PostgreSQL Row Level Security as defense in depth in addition to application-level tenant checks.
+
+RLS is enabled and forced on:
+
+- `verification_receipts`
+- `tenant_policy_versions`
+- `tenant_policy_events`
+- `audit_exports`
+- `audit_export_events`
+
+Tenant transactions set a transaction-local context value:
+
+```text
+gaialab.tenant_id = <authenticated tenant id>
+```
+
+Protected policies compare each row's tenant ownership against that value. A connection with no tenant context receives no tenant data from those tables.
+
+Operator-only platform transactions set:
+
+```text
+gaialab.operator_mode = on
+```
+
+This is used only by trusted server-side control-plane operations such as audit lifecycle administration. Tenant service credentials never set operator mode.
+
+`FORCE ROW LEVEL SECURITY` is used so table ownership alone does not disable the policy. The production runtime database role must also **not** have PostgreSQL `BYPASSRLS` or superuser privileges. Migration credentials may be more privileged, but they should not be used as the application runtime credential.
+
+## Shared tables
+
+The Neon schema includes:
 
 - `tenants`
 - `tenant_api_keys`
@@ -46,6 +93,9 @@ Current shared tables include:
 - `api_rate_windows`
 - `audit_exports`
 - `audit_export_events`
+- `gaialab_schema_migrations`
+
+Identity, signing-key, and rate-limit tables remain server-internal control-plane tables and are not exposed as tenant-query surfaces. Application authorization still applies to all routes.
 
 ## Provision a tenant
 
@@ -142,7 +192,11 @@ When `GAIALAB_DATABASE_URL` is configured, the same API routes use Neon for:
 ```text
 X-API-Key authentication
         ↓
-per-key rate limit row lock
+transaction-local tenant context
+        ↓
+Postgres RLS boundary
+        ↓
+per-key rate-limit row lock
         ↓
 tenant policy lookup
         ↓
@@ -157,7 +211,21 @@ audit lifecycle / legal hold
 
 The Postgres rate limiter uses a row-level lock (`SELECT ... FOR UPDATE`) for each key/window so concurrent instances share one counter.
 
-Receipt insertion checks an existing verification ID inside the same transaction before inserting, preserving write-once tenant ownership semantics.
+Receipt insertion checks an existing verification ID inside the same transaction before inserting, preserving write-once tenant ownership semantics. RLS independently prevents a tenant-scoped transaction from reading or inserting another tenant's protected rows.
+
+## Deployment order
+
+A production deployment should follow this order:
+
+1. create or update the Neon database/runtime roles
+2. set the direct migration URL in the deployment environment
+3. run `python scripts/init_neon_storage.py`
+4. confirm there are no pending/drifted migrations
+5. deploy the API using the pooled runtime URL
+6. run health and tenant-isolation smoke tests
+7. remove migration credentials from the runtime service if they are not needed after deployment
+
+Never use a superuser or `BYPASSRLS` role as the normal API runtime identity.
 
 ## Local fallback
 
@@ -171,17 +239,16 @@ If `GAIALAB_DATABASE_URL` is absent, the existing SQLite environment variables c
 - `GAIALAB_TRUST_RECEIPT_DB`
 - `GAIALAB_AUDIT_LIFECYCLE_DB`
 
-This keeps the current test and local-development workflow intact while Neon becomes the production persistence layer.
+This keeps the current test and local-development workflow intact while Neon is the production persistence layer.
 
 ## Current boundary
 
-This slice provides a production database backend and transactional concurrency primitives. It does not yet include:
+This slice adds versioned migration discipline and database-level tenant isolation. It does not yet include:
 
-- Alembic-style versioned migrations
 - automated backup/restore drills
-- database-level Row Level Security policies
+- connection/transaction telemetry
 - read replicas or analytics replicas
 - destructive retention execution
-- application connection telemetry
+- live Neon RLS integration tests in repository CI
 
 Those should be added as later production-hardening slices rather than mixed into trust-policy logic.
