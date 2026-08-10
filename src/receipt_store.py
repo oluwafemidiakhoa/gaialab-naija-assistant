@@ -102,3 +102,54 @@ class ReceiptStore:
                     (verification_id, tenant_id),
                 ).fetchone()
         return json.loads(row["payload_json"]) if row else None
+
+    def list_for_tenant(
+        self,
+        tenant_id: str,
+        *,
+        created_from: str | None = None,
+        created_to: str | None = None,
+        limit: int = 10000,
+    ) -> list[dict[str, Any]]:
+        """Return tenant-owned receipt records with storage integrity metadata."""
+        if not tenant_id:
+            raise ValueError("tenant_id must not be empty")
+        if not 1 <= limit <= 10000:
+            raise ValueError("limit must be between 1 and 10000")
+
+        clauses = ["tenant_id = ?"]
+        params: list[Any] = [tenant_id]
+        if created_from:
+            clauses.append("created_at >= ?")
+            params.append(created_from)
+        if created_to:
+            clauses.append("created_at <= ?")
+            params.append(created_to)
+        params.append(limit)
+
+        query = f"""
+            SELECT verification_id, payload_sha256, payload_json, created_at
+            FROM verification_receipts
+            WHERE {' AND '.join(clauses)}
+            ORDER BY created_at ASC, verification_id ASC
+            LIMIT ?
+        """
+        with self._connect() as connection:
+            rows = connection.execute(query, params).fetchall()
+
+        records: list[dict[str, Any]] = []
+        for row in rows:
+            envelope = json.loads(row["payload_json"])
+            actual_sha256 = hashlib.sha256(
+                _canonical_json(envelope).encode("utf-8")
+            ).hexdigest()
+            records.append(
+                {
+                    "verification_id": row["verification_id"],
+                    "created_at": row["created_at"],
+                    "payload_sha256": row["payload_sha256"],
+                    "payload_integrity_valid": actual_sha256 == row["payload_sha256"],
+                    "envelope": envelope,
+                }
+            )
+        return records
