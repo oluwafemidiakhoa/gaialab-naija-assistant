@@ -111,7 +111,7 @@ def create_audit_package_from_store(
         signature_valid: bool | None = None
         if signature is not None:
             signature_valid = bool(verify_receipt_signature(receipt, signature)["valid"])
-        if not payload_integrity_valid or signature_valid is False:
+        if not payload_integrity_valid or signature_valid is not True:
             integrity_failures += 1
 
         receipts.append(receipt)
@@ -185,7 +185,10 @@ def create_audit_package(
 def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
     """Verify an audit package from canonical evidence rather than stored booleans."""
     manifest = dict(package.get("manifest") or {})
-    entries = list(package.get("entries") or [])
+    raw_entries = package.get("entries") or []
+    if not isinstance(raw_entries, list):
+        return {"valid": False, "reason": "invalid_entries_shape"}
+    entries = list(raw_entries)
     if not manifest:
         return {"valid": False, "reason": "missing_manifest"}
     if manifest.get("version") != AUDIT_EXPORT_VERSION:
@@ -200,6 +203,8 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
         return {"valid": False, "reason": "package_id_mismatch"}
     if core.get("entry_count") != len(entries):
         return {"valid": False, "reason": "entry_count_mismatch"}
+    if any(not isinstance(entry, Mapping) for entry in entries):
+        return {"valid": False, "reason": "invalid_entry_shape"}
 
     entry_ids = [entry.get("verification_id") for entry in entries]
     entry_hashes = [entry.get("payload_sha256") for entry in entries]
@@ -210,15 +215,15 @@ def verify_audit_package(package: Mapping[str, Any]) -> dict[str, Any]:
 
     signature = package.get("manifest_signature")
     signature_result = None
-    if signature:
+    if signature is not None:
+        if not isinstance(signature, Mapping):
+            return {"valid": False, "reason": "invalid_manifest_signature_shape"}
         signature_result = verify_receipt_signature(core, signature)
         if not signature_result["valid"]:
             return {"valid": False, "reason": "invalid_manifest_signature"}
 
     verified_receipts: list[Mapping[str, Any]] = []
     for index, entry in enumerate(entries):
-        if not isinstance(entry, Mapping):
-            return {"valid": False, "reason": "invalid_entry_shape", "entry_index": index}
         verification_id = str(entry.get("verification_id") or "")
         payload_sha256 = str(entry.get("payload_sha256") or "")
         receipt = entry.get("verification_receipt")
