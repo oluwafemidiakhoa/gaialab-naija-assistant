@@ -16,6 +16,7 @@ from typing import Any, Mapping
 from src.receipt_signing import sign_receipt, verify_receipt_signature
 
 OPERATOR_CHECKPOINT_VERSION = "gaialab-naija-operator-checkpoint/0.1.0"
+SUPPORTED_STREAM_ID = "global"
 
 
 def _canonical_json(payload: Mapping[str, Any]) -> str:
@@ -30,12 +31,12 @@ def create_checkpoint(
     action_log: Any,
     private_key_b64: str,
     *,
-    stream_id: str = "global",
+    stream_id: str = SUPPORTED_STREAM_ID,
     created_at: str | None = None,
 ) -> dict[str, Any]:
     """Create a signed, portable checkpoint from a verified action-log state."""
-    if not stream_id:
-        raise ValueError("stream_id must not be empty")
+    if stream_id != SUPPORTED_STREAM_ID:
+        raise ValueError("only the global operator action stream is supported")
     integrity = action_log.verify_chain()
     if not integrity.get("valid"):
         raise ValueError(f"operator action chain is not valid: {integrity.get('reason')}")
@@ -46,7 +47,7 @@ def create_checkpoint(
 
     core = {
         "version": OPERATOR_CHECKPOINT_VERSION,
-        "stream_id": stream_id,
+        "stream_id": SUPPORTED_STREAM_ID,
         "action_count": count,
         "action_head_sha256": head,
         "created_at": created_at or datetime.now(timezone.utc).isoformat(),
@@ -73,7 +74,9 @@ def verify_checkpoint(
         created_at = str(checkpoint["created_at"])
     except (KeyError, TypeError, ValueError):
         return {"valid": False, "reason": "invalid_checkpoint_shape"}
-    if not stream_id or action_count < 0 or len(head) != 64 or not created_at:
+    if stream_id != SUPPORTED_STREAM_ID:
+        return {"valid": False, "reason": "unsupported_checkpoint_stream"}
+    if action_count < 0 or len(head) != 64 or not created_at:
         return {"valid": False, "reason": "invalid_checkpoint_shape"}
 
     core = {
