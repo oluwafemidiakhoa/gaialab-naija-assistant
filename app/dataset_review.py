@@ -18,7 +18,13 @@ from src.dataset_management import (
     list_versions,
     review_state,
 )
-from src.review_workflow import create_revision, review_history, transition_review
+from src.language_governance import requires_cultural_validation
+from src.review_workflow import (
+    create_revision,
+    record_cultural_validation,
+    review_history,
+    transition_review,
+)
 
 
 REGISTRY_DIR = Path(os.getenv("GAIALAB_DATASET_REGISTRY", "data/registry"))
@@ -107,6 +113,13 @@ def run(*, configure_page: bool = True) -> None:
                 "recommended_action": record.get("recommended_action"),
                 "quality_findings": record.get("quality_findings", []),
                 "quality_warnings": record.get("quality_warnings", []),
+                "language": record.get("language"),
+                "cultural_review_required": requires_cultural_validation(record),
+                "culturally_validated": record.get("culturally_validated", False),
+                "cultural_reviewer": record.get("cultural_reviewer", ""),
+                "cultural_review_timestamp": record.get("cultural_review_timestamp", ""),
+                "cultural_review_record_sha256": record.get("cultural_review_record_sha256", ""),
+                "governance_status": record.get("governance_status"),
             }
         )
         st.subheader("Review history")
@@ -121,6 +134,13 @@ def run(*, configure_page: bool = True) -> None:
             }
             for event in history if event.get("review_event")
         ])
+        cultural_history = [
+            event.get("cultural_review_event")
+            for event in history if event.get("cultural_review_event")
+        ]
+        if cultural_history:
+            st.subheader("Cultural review history")
+            st.json(cultural_history)
         revisions = [
             event.get("record") for event in history if event.get("record")
         ]
@@ -181,11 +201,46 @@ def run(*, configure_page: bool = True) -> None:
             st.success(result)
             st.rerun()
 
+    if requires_cultural_validation(record):
+        st.divider()
+        st.subheader("Nigerian cultural validation")
+        st.caption(
+            "This is a separate content-bound human decision. It does not approve "
+            "the record and must be repeated after any content revision."
+        )
+        cultural_notes = st.text_area("Cultural review notes")
+        culturally_valid = st.radio(
+            "Cultural decision",
+            ["validated", "not_validated"],
+            horizontal=True,
+        )
+        if st.button("Append cultural validation"):
+            try:
+                event = record_cultural_validation(
+                    REGISTRY_DIR,
+                    version,
+                    record["id"],
+                    reviewer,
+                    role,
+                    culturally_validated=culturally_valid == "validated",
+                    review_notes=cultural_notes,
+                )
+            except DatasetManagementError as exc:
+                st.error(str(exc))
+            else:
+                st.success(
+                    f"Appended cultural review for revision {event.revision}; "
+                    f"validated={event.culturally_validated}."
+                )
+                st.rerun()
+
     public_queue = [
         {
             "id": item["id"], "category": item["category"],
             "risk_level": item["risk_level"], "review_status": item["review_status"],
             "example_sha256": item["example_sha256"],
+            "cultural_review_required": requires_cultural_validation(item),
+            "culturally_validated": item.get("culturally_validated", False),
         }
         for item in filtered
     ]
